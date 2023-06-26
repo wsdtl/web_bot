@@ -25,6 +25,5 @@ nonebot.load_plugins("src/plugins") # 本地插件
 
 
 if __name__ == "__main__":
-    
     nonebot.run(app="__mp_main__:app")
 
