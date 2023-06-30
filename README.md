@@ -1,6 +1,6 @@
 # xiaonan_bot
 
-fastapi + nb2 把机器人搬到网络上  
+nb2 把机器人搬到网络上  
 
 ## How to start
 
