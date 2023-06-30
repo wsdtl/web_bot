@@ -1,4 +1,3 @@
-
 from nonebot.permission import Permission
 from .event import MessEvent
 

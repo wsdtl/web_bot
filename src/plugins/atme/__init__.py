@@ -6,13 +6,7 @@ atme = on(permission=TOME, priority=10, block=True)
 @atme.handle()
 async def _(bot: Bot ,event: MessEvent):
     arg = event.get_arg()
-    msg = {"msg": arg}
-    await bot.finish(event.sock, event.addr, msg)
-    
-at_me = on("at_me", priority=11, block=True)
-
-@at_me.handle()
-async def _(bot: Bot ,event: MessEvent):
-    arg = event.get_arg()
-    msg = {"msg": arg}
-    await bot.finish(event.sock, event.addr, msg)    
+    args = "".join(arg)
+    msg = {"msg": args+"at我干什么!"}
+    await bot.send(event.user_id, msg)
+      
