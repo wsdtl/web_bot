@@ -5,7 +5,7 @@ from websocket import create_connection
 from pathlib import Path
 from typing import Dict
 
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QLineEdit,  QDesktopWidget
 from PyQt5.QtGui import QIcon, QPalette, QBrush, QPixmap
 from PyQt5.QtCore import QThread, pyqtSignal, QSize, Qt
 
@@ -14,7 +14,7 @@ SendHtmlLeft = """
     <body>
         <hr style="margin-bottom: 1px;margin-top: 1px;">
         <p style="text-align: left;margin: 1px;padding: 1px;color: #ffcde6;font-size: 18px;font-weight:bold;">{0}</p>
-        <p style="text-align: left;margin: 1px;padding: 1px;font-size: 16px;">{1}</p>
+        <p style="text-align: left;margin: 1px;padding: 1px;font-size: 18px;">{1}</p>
     </body>
 </html>          
 """
@@ -23,7 +23,7 @@ SendHtmlRight = """
     <body>
         <hr style="margin-bottom: 1px;margin-top: 1px;">
         <p style="text-align: right;margin: 1px;padding: 1px;color: #ffcde6;font-size: 18px;font-weight:bold;">{0}</p>
-        <p style="text-align: right;margin: 1px;padding: 1px;font-size: 16px;">{1}</p>
+        <p style="text-align: right;margin: 1px;padding: 1px;font-size: 18px;">{1}</p>
     </body>
 </html>             
 """
@@ -42,7 +42,6 @@ SendHtmlHello = """
     </body>
 </html>         
 """
-
 
 class WebsockRecvThread(QThread):
     
@@ -73,7 +72,7 @@ class WebsockRecvThread(QThread):
                     if "msg" in msg:
                         self.WebsockReceiveSingal.emit(msg["msg"]) 
             except Exception as e:
-                self.LogInfoSingal.emit(f"与服务器已失去连接，请重新登录，{e}")
+                self.LogInfoSingal.emit(f"与服务器已失去连接，请重新登录")
             finally:
                 self.ConnectionsSinagl.emit(self.UserId)
             return    
@@ -125,7 +124,6 @@ class Window(QWidget):
         self.WsUrl: str = "ws://dengxiaonan.cn:8090/xiaonan"
         self.init_ui()
 
-    
     def init_ui(self):
         self.setFixedSize(600, 600)
         self.setWindowTitle("晓楠客户端")
@@ -133,6 +131,7 @@ class Window(QWidget):
         palette = QPalette()
         palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "back.png"))))  
         self.setPalette(palette)
+        self.MoveCenter()
         # 发送按钮
         self.pushButtonSend = QPushButton(self)
         self.pushButtonSend.setToolTip("发送")
@@ -143,7 +142,7 @@ class Window(QWidget):
         self.pushButtonSend.setShortcut (Qt.Key_Return )
         # 隐藏按钮
         self.pushButtonEye = QPushButton(self)
-        self.pushButtonEye.setToolTip("隐藏账号")
+        self.pushButtonEye.setToolTip("查看账号")
         self.pushButtonEye.setMinimumSize(QSize(50, 30))
         self.pushButtonEye.move(190, 10)
         self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
@@ -281,6 +280,14 @@ class Window(QWidget):
             return self.UserName.text()
         else:
             return self.name
+        
+    def MoveCenter(self):
+        screen = QDesktopWidget().screenGeometry()
+        form   = self.geometry()
+        XMoveStep = (screen.width() - form.width()) / 2
+        YMoveStep = (screen.height() - form.height()) / 2
+        self.move(int(XMoveStep), int(YMoveStep))
+    
     # 连接意外断开
     def ConnectionsClose(self) -> None:
         for ws in self.connections.values():
