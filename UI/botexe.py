@@ -2,6 +2,7 @@ import os
 import sys
 import ujson as json
 from websocket import create_connection
+from websocket._core import WebSocket
 from pathlib import Path
 from typing import Dict
 
@@ -12,33 +13,33 @@ from PyQt5.QtCore import QThread, pyqtSignal, QSize, Qt
 SendHtmlLeft = """           
 <html>
     <body>
-        <hr style="margin-bottom: 1px;margin-top: 1px;">
-        <p style="text-align: left;margin: 1px;padding: 1px;color: #ffcde6;font-size: 18px;font-weight:bold;">{0}</p>
-        <p style="text-align: left;margin: 1px;padding: 1px;font-size: 18px;">{1}</p>
+        <hr style="margin: 0px;"/>
+        <p style="text-align: left;margin: 1px;color: #ffdd9a;font-size: 18px;font-weight:bold;font-style:oblique;">{0}</p>
+        <p style="text-align: left;margin: 1px;font-size: 18px;">{1}</p>
     </body>
 </html>          
 """
 SendHtmlRight = """
 <html>
     <body>
-        <hr style="margin-bottom: 1px;margin-top: 1px;">
-        <p style="text-align: right;margin: 1px;padding: 1px;color: #ffcde6;font-size: 18px;font-weight:bold;">{0}</p>
-        <p style="text-align: right;margin: 1px;padding: 1px;font-size: 18px;">{1}</p>
+        <hr style="margin: 0px;"/>
+        <p style="text-align: right;margin: 1px;color: #ffdd9a;font-size: 18px;font-weight:bold;font-style:oblique;">{0}</p>
+        <p style="text-align: right;margin: 1px;font-size: 18px;">{1}</p>
     </body>
 </html>             
 """
 SendHtmlErro = """
 <html>
     <body>
-        <hr style="margin-bottom: 1px;margin-top: 1px;">
-        <h1 style="text-align: center;margin: 1px;padding: 1px;color: #00ffff;">{0}</h1>
+        <hr style="margin: 0px;"/>
+        <h1 style="text-align: center;margin: 1px;color: #9aefff;">{0}</h1>
     </body>
 </html>         
 """       
 SendHtmlHello = """
 <html>
     <body>
-        <h1 style="text-align: center;margin: 1px;padding: 1px;color: #00ffff;">欢迎使用晓楠客户端</h1>
+        <h1 style="text-align: center;margin: 1px;color: #9aefff;">欢迎使用晓楠客户端</h1>
     </body>
 </html>         
 """
@@ -48,17 +49,17 @@ class WebsockRecvThread(QThread):
     def __init__(self, WebsockReceiveSingal: pyqtSignal, 
                  LogInfoSingal: pyqtSignal, 
                  ConnectionsSinagl: pyqtSignal,
-                 websock: any,
+                 websock: WebSocket,
                  UserId: str
         ):
         super().__init__()
         self.WebsockReceiveSingal: pyqtSignal = WebsockReceiveSingal
         self.LogInfoSingal: pyqtSignal = LogInfoSingal
         self.ConnectionsSinagl: pyqtSignal = ConnectionsSinagl
-        self.websock: any = websock
+        self.websock: WebSocket = websock
         self.UserId: str = UserId
         
-    def run(self):
+    def run(self) -> None:
             self.HelloData = {
                 "msg" : "i miss you xiaonan",
                 "user_id": self.UserId
@@ -85,14 +86,14 @@ class WebsockSendThread(QThread):
     def __init__(self,
                  msg: str,
                  UserId: str,
-                 websock: any
+                 websock: WebSocket
         ):
         super().__init__()
         self.msg: str = msg
         self.UserId: str = UserId
-        self.websock: any = websock
+        self.websock: WebSocket = websock
         
-    def run(self):
+    def run(self) -> None:
             try:
                 self.websock.send(self.to_json(self.msg, self.UserId))
             except Exception as e:
@@ -117,14 +118,14 @@ class Window(QWidget):
     
     def __init__(self) -> None:
         super().__init__()
-        self.connections :Dict[str: QThread] = {}
-        self.thread: Dict[str:QThread] = {}
+        self.connections :Dict[str: WebSocket] = {}
+        self.thread: Dict[str: QThread] = {}
         self.name: str = "用户"
         self.BotName: str = "晓楠"
         self.WsUrl: str = "ws://dengxiaonan.cn:8090/xiaonan"
         self.init_ui()
 
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.setFixedSize(600, 600)
         self.setWindowTitle("晓楠客户端")
         self.setWindowIcon(QIcon(str(self.PATH / "img" / "bot.png")))
@@ -132,66 +133,67 @@ class Window(QWidget):
         palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "back.png"))))  
         self.setPalette(palette)
         self.MoveCenter()
+        self.setStyleSheet("border-radius:4px;")
         # 发送按钮
         self.pushButtonSend = QPushButton(self)
         self.pushButtonSend.setToolTip("发送")
-        self.pushButtonSend.setMinimumSize(QSize(50, 40))
+        self.pushButtonSend.setFixedSize(QSize(50, 40))
         self.pushButtonSend.move(540, 550)
         self.pushButtonSend.setIcon(QIcon(str(self.PATH / "img" / "send.png")))
-        self.pushButtonSend.setStyleSheet("background:rgba(225,225,225,100);")
+        self.pushButtonSend.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         self.pushButtonSend.setShortcut (Qt.Key_Return )
         # 隐藏按钮
         self.pushButtonEye = QPushButton(self)
         self.pushButtonEye.setToolTip("查看账号")
-        self.pushButtonEye.setMinimumSize(QSize(50, 30))
+        self.pushButtonEye.setFixedSize(QSize(50, 30))
         self.pushButtonEye.move(190, 10)
         self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
-        self.pushButtonEye.setStyleSheet("background:rgba(225,225,225,100);")
+        self.pushButtonEye.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 登录按钮
         self.pushButtonSing = QPushButton(self)
         self.pushButtonSing.setToolTip("登录")
-        self.pushButtonSing.setMinimumSize(QSize(50, 30))
+        self.pushButtonSing.setFixedSize(QSize(50, 30))
         self.pushButtonSing.move(420, 10)
         self.pushButtonSing.setIcon(QIcon(str(self.PATH / "img" / "sing.png")))
-        self.pushButtonSing.setStyleSheet("background:rgba(225,225,225,100);")
+        self.pushButtonSing.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 登出按钮
         self.pushButtonExit = QPushButton(self)
         self.pushButtonExit.setToolTip("登出")
-        self.pushButtonExit.setMinimumSize(QSize(50, 30))
+        self.pushButtonExit.setFixedSize(QSize(50, 30))
         self.pushButtonExit.move(480, 10)
         self.pushButtonExit.setIcon(QIcon(str(self.PATH / "img" / "exit.png")))
-        self.pushButtonExit.setStyleSheet("background:rgba(225,225,225,100);")
+        self.pushButtonExit.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 清空按钮
         self.pushButtonClear = QPushButton(self)
         self.pushButtonClear.setToolTip("清空消息框")
-        self.pushButtonClear.setMinimumSize(QSize(50, 30))
+        self.pushButtonClear.setFixedSize(QSize(50, 30))
         self.pushButtonClear.move(540, 10)
         self.pushButtonClear.setIcon(QIcon(str(self.PATH / "img" / "clear.png")))
-        self.pushButtonClear.setStyleSheet("background:rgba(225,225,225,100);")
+        self.pushButtonClear.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 账户输入窗口
         self.UserId = QLineEdit(self)
         self.UserId.setPlaceholderText("使用前请先输入账户ID")
-        self.UserId.setMinimumSize(QSize(170, 30))
+        self.UserId.setFixedSize(QSize(170, 30))
         self.UserId.move(10, 10)
-        self.UserId.setStyleSheet("background:rgba(225,225,225,100);border-style:outset;font-family:Microsoft YaHei;font-size:16px;")
+        self.UserId.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
         self.UserId.setEchoMode(QLineEdit.Password)
         # 用户名输入窗口
         self.UserName = QLineEdit(self)
-        self.UserName.setPlaceholderText("昵称，默认为 用户")
-        self.UserName.setMinimumSize(QSize(160, 30))
+        self.UserName.setPlaceholderText("昵称 默认为 用户")
+        self.UserName.setFixedSize(QSize(160, 30))
         self.UserName.move(250, 10)
-        self.UserName.setStyleSheet("background:rgba(225,225,225,100);border-style:outset;font-family:Microsoft YaHei;font-size:16px;")
-        # 文字发送窗口
+        self.UserName.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
+        # 文字发送窗口 
         self.SendTxt = QLineEdit(self)
         self.SendTxt.setPlaceholderText("请输入文字")
-        self.SendTxt.setMinimumSize(QSize(520, 40))
+        self.SendTxt.setFixedSize(QSize(520, 40))
         self.SendTxt.move(10, 550)
-        self.SendTxt.setStyleSheet("background:rgba(225,225,225,100);border-style:outset;font-family:Microsoft YaHei;font-size:16px;")
+        self.SendTxt.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
         # 对话框
         self.textBrowser = QTextBrowser(self)
-        self.textBrowser.setMinimumSize(QSize(580, 490))
+        self.textBrowser.setFixedSize(QSize(580, 490))
         self.textBrowser.move(10, 50)
-        self.textBrowser.setStyleSheet("background:rgba(225,225,225,100);font-family:Microsoft YaHei;")
+        self.textBrowser.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;")
         self.textBrowser.append(SendHtmlHello)
         # self.cursot = self.textBrowser.textCursor()
         # self.textBrowser.moveCursor(self.cursot.End)
@@ -260,8 +262,12 @@ class Window(QWidget):
         user_id = self.UserId.text()
         if not user_id:
             self.LogInfoSingal.emit("请先填写账户ID")
+            return
+        if not user_id in self.connections:
+            self.LogInfoSingal.emit("还没有登录呢")  
+            return
         msg = self.SendTxt.text()
-        if msg and isinstance(msg, str) and user_id in self.connections:
+        if msg and isinstance(msg, str):
             self.SendThread = WebsockSendThread(msg, user_id, self.connections[user_id])  # 创建线程
             self.SendThread.start()  # 开始线程
             self.SendSingal.emit(msg)
@@ -280,14 +286,14 @@ class Window(QWidget):
             return self.UserName.text()
         else:
             return self.name
-        
-    def MoveCenter(self):
+    # 居中
+    def MoveCenter(self) -> None:
         screen = QDesktopWidget().screenGeometry()
         form   = self.geometry()
         XMoveStep = (screen.width() - form.width()) / 2
         YMoveStep = (screen.height() - form.height()) / 2
         self.move(int(XMoveStep), int(YMoveStep))
-    
+        return
     # 连接意外断开
     def ConnectionsClose(self) -> None:
         for ws in self.connections.values():
