@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QL
 from PyQt5.QtGui import QIcon, QPalette, QBrush, QPixmap
 from PyQt5.QtCore import QThread, pyqtSignal, QSize, Qt
 
+import imgdata
+
 SendHtmlLeft = """           
 <html>
     <body>
@@ -128,9 +130,12 @@ class Window(QWidget):
     def init_ui(self) -> None:
         self.setFixedSize(600, 600)
         self.setWindowTitle("晓楠客户端")
-        self.setWindowIcon(QIcon(str(self.PATH / "img" / "bot.png")))
+        # self.setWindowIcon(QIcon(str(self.PATH / "img" / "bot.png")))
+        self.setWindowIcon(QIcon(QPixmap(':/img/bot.png')))
+
         palette = QPalette()
-        palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "back.png"))))  
+        # palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "back.png"))))  
+        palette.setBrush(QPalette.Background, QBrush(QPixmap(':/img/back.png')))
         self.setPalette(palette)
         self.MoveCenter()
         self.setStyleSheet("border-radius:4px;")
@@ -139,7 +144,8 @@ class Window(QWidget):
         self.pushButtonSend.setToolTip("发送")
         self.pushButtonSend.setFixedSize(QSize(50, 40))
         self.pushButtonSend.move(540, 550)
-        self.pushButtonSend.setIcon(QIcon(str(self.PATH / "img" / "send.png")))
+        # self.pushButtonSend.setIcon(QIcon(str(self.PATH / "img" / "send.png")))
+        self.pushButtonSend.setIcon(QIcon(QPixmap(':/img/send.png')))
         self.pushButtonSend.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         self.pushButtonSend.setShortcut (Qt.Key_Return )
         # 隐藏按钮
@@ -147,28 +153,32 @@ class Window(QWidget):
         self.pushButtonEye.setToolTip("查看账号")
         self.pushButtonEye.setFixedSize(QSize(50, 30))
         self.pushButtonEye.move(190, 10)
-        self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
+        # self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
+        self.pushButtonEye.setIcon(QIcon(QPixmap(':/img/eye.png')))
         self.pushButtonEye.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 登录按钮
         self.pushButtonSing = QPushButton(self)
         self.pushButtonSing.setToolTip("登录")
         self.pushButtonSing.setFixedSize(QSize(50, 30))
         self.pushButtonSing.move(420, 10)
-        self.pushButtonSing.setIcon(QIcon(str(self.PATH / "img" / "sing.png")))
+        # self.pushButtonSing.setIcon(QIcon(str(self.PATH / "img" / "sing.png")))
+        self.pushButtonSing.setIcon(QIcon(QPixmap(':/img/sing.png')))
         self.pushButtonSing.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 登出按钮
         self.pushButtonExit = QPushButton(self)
         self.pushButtonExit.setToolTip("登出")
         self.pushButtonExit.setFixedSize(QSize(50, 30))
         self.pushButtonExit.move(480, 10)
-        self.pushButtonExit.setIcon(QIcon(str(self.PATH / "img" / "exit.png")))
+        # self.pushButtonExit.setIcon(QIcon(str(self.PATH / "img" / "exit.png")))
+        self.pushButtonExit.setIcon(QIcon(QPixmap(':/img/exit.png')))
         self.pushButtonExit.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 清空按钮
         self.pushButtonClear = QPushButton(self)
         self.pushButtonClear.setToolTip("清空消息框")
         self.pushButtonClear.setFixedSize(QSize(50, 30))
         self.pushButtonClear.move(540, 10)
-        self.pushButtonClear.setIcon(QIcon(str(self.PATH / "img" / "clear.png")))
+        # self.pushButtonClear.setIcon(QIcon(str(self.PATH / "img" / "clear.png")))
+        self.pushButtonClear.setIcon(QIcon(QPixmap(':/img/clear.png')))
         self.pushButtonClear.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
         # 账户输入窗口
         self.UserId = QLineEdit(self)

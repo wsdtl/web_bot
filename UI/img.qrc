@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/back.png</file>
+        <file>img/bot.png</file>
+        <file>img/clear.png</file>
+        <file>img/exit.png</file>
+        <file>img/eye.png</file>
+        <file>img/send.png</file>
+        <file>img/sing.png</file>
+    </qresource>
+</RCC>
+
