@@ -13,7 +13,7 @@ class MessEvent(BaseEvent):
         return self.at
     
     def get_event_name(self) -> str:
-        return 1
+        return f"来自{self.user_id}的CMD:{self.cmd}"
 
     def get_arg(self) -> List[str]:
         try:

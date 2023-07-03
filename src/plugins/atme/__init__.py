@@ -7,6 +7,6 @@ atme = on(permission=TOME, priority=10, block=True)
 async def _(bot: Bot ,event: MessEvent):
     arg = event.get_arg()
     args = "".join(arg)
-    msg = {"msg": args+"at我干什么!"}
+    msg = {"msg": args+"叫我干什么!"}
     await bot.send(event.user_id, msg)
       
