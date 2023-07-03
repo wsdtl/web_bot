@@ -6,4 +6,4 @@ base_baby = on(priority=99, block=True)
 @base_baby.handle()
 async def _(bot: Bot, event: MessEvent):
     msg = {"msg": "404 err"}
-    await bot.send(event.user_id, msg)
+    await bot.send(event, msg)

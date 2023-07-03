@@ -1,8 +1,10 @@
 import asyncio
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import Any, Union, Optional, TYPE_CHECKING
 from nonebot.adapters import Bot as BaseBot
 from nonebot.typing import overrides
+from nonebot.exception import FinishedException
+
+from .event import MessEvent
 
 if TYPE_CHECKING:
     from .adapter import Adapter
@@ -19,9 +21,16 @@ class Bot(BaseBot):
     @overrides(BaseBot)
     async def send(
             self,
-            user_id: str,
-            message: dict,
+            event: MessEvent,
+            message: Optional[Union[str, dict]] = None,
     ) -> Any:
-        await asyncio.create_task(self.adapter.send(user_id, message))
+        if isinstance(message, str):
+            message = {
+                "msg" : message
+            }
+        await asyncio.create_task(self.adapter.send(event.user_id, message))
         return
+    
+    async def finish(self) -> None:
+        raise FinishedException
     

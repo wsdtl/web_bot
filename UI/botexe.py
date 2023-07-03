@@ -108,7 +108,7 @@ class WebsockSendThread(QThread):
             "msg": msg,
             "user_id": UserId
         }
-        return json.dumps(data)
+        return json.dumps(data) 
 
 class Window(FramelessWindow):
     """窗口监控类"""
@@ -196,7 +196,7 @@ class Window(FramelessWindow):
         self.textBrowser.setFixedSize(QSize(580, 495))
         self.textBrowser.move(10, 75)
         self.textBrowser.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;")
-        self.textBrowser.append(SendHtmlHello)
+        self.textBrowser.setHtml(SendHtmlHello)
         # self.cursot = self.textBrowser.textCursor()
         # self.textBrowser.moveCursor(self.cursot.End)
         # QApplication.processEvents()
@@ -246,19 +246,24 @@ class Window(FramelessWindow):
         if user_id in self.connections:
             self.LogInfoSingal.emit(f"账户{user_id}已登录，请不要重复登录")
             return  
-        self.LogInfoSingal.emit(f"正在登录，请稍等") 
-        self.UserId.setReadOnly(True)  
-        websocket = create_connection(self.WsUrl)
-        self.connections[user_id] = websocket
-        thread = self.RecvThread = WebsockRecvThread(
+        self.LogInfoSingal.emit("正在登录请稍后")
+        self.UserId.setReadOnly(True)
+        try:  
+            websocket = create_connection(self.WsUrl)
+            self.connections[user_id] = websocket
+            RecvThread = WebsockRecvThread(
             self.WebsockReceiveSingal,
             self.LogInfoSingal,
             self.ConnectionsSinagl,
             self.connections[user_id],
             user_id
-        )  # 创建线程
-        self.RecvThread.start()  # 开始线程
-        self.thread[user_id] = thread
+            )  # 创建线程
+            RecvThread.start()  # 开始线程
+            self.thread[user_id] = RecvThread 
+        except ConnectionRefusedError:
+            self.LogInfoSingal.emit(f"服务器掉线了") 
+        except Exception:
+            self.LogInfoSingal.emit(f"服务出错了") 
         return
 
     def EyePressed(self) -> None:
@@ -332,18 +337,27 @@ class Window(FramelessWindow):
         """服务器输出"""
         msg = msg.replace("\n", "<br>")
         self.textBrowser.append(SendHtmlLeft.format(self.BotName, msg))
+        cursot = self.textBrowser.textCursor()
+        self.textBrowser.moveCursor(cursot.End)
+        QApplication.processEvents()
         return
     
     def WindowTextLog(self, msg) -> None:
         """日志类输出"""
         msg = msg.replace("\n", "<br>")
         self.textBrowser.append(SendHtmlErro.format(msg))
+        cursot = self.textBrowser.textCursor()
+        self.textBrowser.moveCursor(cursot.End)
+        QApplication.processEvents()
         return
      
     def WindowTextSend(self, msg) -> None:
         """用户输出"""
         msg = msg.replace("\n", "<br>")
         self.textBrowser.append(SendHtmlRight.format(self.GetName(), msg))
+        cursot = self.textBrowser.textCursor()
+        self.textBrowser.moveCursor(cursot.End)
+        QApplication.processEvents()
         return
 
 if __name__ == '__main__':
