@@ -4,48 +4,166 @@ import ujson as json
 from websocket import create_connection
 from websocket._core import WebSocket
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QTextBrowser, QLineEdit
-from PyQt5.QtGui import QIcon, QPalette, QBrush, QPixmap
-from PyQt5.QtCore import QThread, pyqtSignal, QSize, Qt
-from qframelesswindow import FramelessWindow, StandardTitleBar
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget, 
+    QPushButton, 
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem
+    )
+from PyQt5.QtGui import (
+    QIcon, 
+    QPalette, 
+    QBrush, 
+    QPixmap,
+    QFont, 
+    QPainter, 
+    QPaintEvent,
+    QColor, 
+    QFontMetrics, 
+    QLinearGradient
+    )
+from PyQt5.QtCore import (
+    QThread,
+    pyqtSignal, 
+    QSize,
+    Qt, 
+    QPointF
+    )
+from qframelesswindow import (
+    FramelessWindow,
+    StandardTitleBar
+    )
 
 import imge
 
-SendHtmlLeft = """           
-<html>
-    <body>
-        <hr style="margin: 0px;"/>
-        <p style="text-align: left;margin: 1px;color: #ffdd9a;font-size: 18px;font-weight:bold;font-style:oblique;">{0}</p>
-        <p style="text-align: left;margin: 1px;font-size: 18px;">{1}</p>
-    </body>
-</html>          
-"""
-SendHtmlRight = """
-<html>
-    <body>
-        <hr style="margin: 0px;"/>
-        <p style="text-align: right;margin: 1px;color: #ffdd9a;font-size: 18px;font-weight:bold;font-style:oblique;">{0}</p>
-        <p style="text-align: right;margin: 1px;font-size: 18px;">{1}</p>
-    </body>
-</html>             
-"""
-SendHtmlErro = """
-<html>
-    <body>
-        <hr style="margin: 0px;"/>
-        <h3 style="text-align: center;margin: 1px;color: #9aefff;">{0}</h3>
-    </body>
-</html>         
-"""       
-SendHtmlHello = """
-<html>
-    <body>
-        <h2 style="text-align: center;margin: 1px;color: #9aefff;">欢迎使用晓楠客户端</h2>
-    </body>
-</html>         
-"""
+class DrawingBubble(QWidget):
+    def __init__(self, text: str, parentWidth: int, align: str):
+        super().__init__()
+        self.fontMaxWidth = 558
+        self.parentWidth = parentWidth
+        self.align = align
+        self.fontSize = 12
+        self.font = QFont('Microsoft YaHei', self.fontSize)
+        text, w, h = self.prepare(text)
+        self.text = text
+        self.w = w
+        self.h = h
+        self.moveSize = 10
+        self.setFixedSize(self.parentWidth, self.h + self.moveSize)
+        self.setAutoFillBackground(True)
+            
+    def paintEvent(self, event: QPaintEvent) -> None:
+        # 开始绘制       
+        painter = QPainter(self) 
+        painter.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing)
+        # 自定义的绘画方法
+        if self.align == "left":
+            self.drawTextLeft(event, painter)
+        elif self.align == "right":
+            self.drawTextRight(event, painter)
+        elif self.align == "center":
+            self.drawTextCenter(event, painter)
+        else:
+            pass
+            
+    def drawTextCenter(self, event: QPaintEvent, painter: QPainter) -> None:
+        # 设置笔
+        painter.setFont(QFont('Microsoft YaHei', 16))
+        # 文字颜色
+        textColor = QColor(0, 0, 0)
+        textColor.setNamedColor('#ffd2b6')
+        # 画出文本
+        painter.setPen(textColor)
+        painter.drawText(event.rect(), Qt.AlignCenter, self.text)
+    
+    def drawTextLeft(self, event: QPaintEvent, painter: QPainter) -> None:
+        # 设置笔
+        painter.setFont(self.font)
+        # 渐变
+        backgroundColor = QLinearGradient(QPointF(100, 100), QPointF(400, 400))
+        blue = QColor(0, 0, 0)
+        blue.setNamedColor('#9aefff')
+        white = QColor(0, 0, 0)
+        white.setNamedColor('#d1eff3')
+        # 背景颜色
+        backgroundColor.setColorAt(0, blue)
+        backgroundColor.setColorAt(1, white)
+        # 阴影颜色
+        borderColor= QColor(0, 0, 0)
+        borderColor.setNamedColor('#c3c3c3')
+        # 文字颜色
+        textColor = QColor(0, 0, 0)
+        # 背景
+        painter.setBrush(backgroundColor)
+        painter.drawRoundedRect(self.moveSize + 1, self.moveSize + 1, self.w -2 , self.h -2, 6, 6)
+        # 阴影
+        painter.setPen(borderColor)
+        painter.drawRoundedRect(self.moveSize, self.moveSize, self.w , self.h, 6, 6)
+        # 画出文本
+        painter.setPen(textColor)
+        painter.drawText(self.moveSize + 5, self.moveSize, self.w, self.h, Qt.AlignLeft, self.text)
+
+    def drawTextRight(self, event: QPaintEvent, painter: QPainter) -> None:
+        # 设置笔
+        painter.setFont(self.font)
+         # 渐变
+        backgroundColor = QLinearGradient(QPointF(100, 100), QPointF(400, 400))
+        blue = QColor(0, 0, 0)
+        blue.setNamedColor('#9aefff')
+        white = QColor(0, 0, 0)
+        white.setNamedColor('#d1eff3')
+        # 背景颜色
+        backgroundColor.setColorAt(0, blue)
+        backgroundColor.setColorAt(1, white)
+        # 阴影颜色
+        borderColor= QColor(0, 0, 0)
+        borderColor.setNamedColor('#c3c3c3')
+        # 文字颜色
+        textColor = QColor(0, 0, 0)
+        # 右边偏移差量
+        moveRight = self.parentWidth - self.w
+        # 背景
+        painter.setBrush(backgroundColor)
+        painter.drawRoundedRect(moveRight -self.moveSize + 1,  self.moveSize + 1, self.w -2 , self.h -2, 6, 6)
+        # 阴影
+        painter.setPen(borderColor)
+        painter.drawRoundedRect(moveRight - self.moveSize, self.moveSize, self.w , self.h, 6, 6)
+        # 画出文本
+        painter.setPen(textColor)
+        painter.drawText(moveRight - self.moveSize + 5, self.moveSize, self.w, self.h, Qt.AlignLeft, self.text)
+    
+    def prepare(self, text: str) -> Tuple[str, int, int]:
+        # 字符长度计算
+        font = QFontMetrics(self.font)
+        textLen = 0
+        textNew = ""
+        textMaxLen = 0
+        for x in text:
+            textNew += x
+            if x == "\n":
+                pass
+            else:
+                textLen +=  font.width(x)
+            if x == '\n':
+                if textLen > textMaxLen:
+                    textMaxLen = textLen
+                textLen = 0
+            if textLen >= self.fontMaxWidth:
+                if textLen > textMaxLen:
+                    textMaxLen = self.fontMaxWidth
+                textLen = 0
+                textNew += '\n'
+            if textLen > textMaxLen:
+                textMaxLen = textLen
+        textNew = textNew.replace("\n\n","\n")        
+        textNew = textNew.rstrip()
+        fontRow = textNew.count("\n") + 1
+        return textNew, int(textMaxLen) + 15, int(font.height() * fontRow) + 5
+
 
 class WebsockRecvThread(QThread):
     """消息接收进程"""
@@ -192,14 +310,16 @@ class Window(FramelessWindow):
         self.SendTxt.move(10, 580)
         self.SendTxt.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
         # 对话框
-        self.textBrowser = QTextBrowser(self)
-        self.textBrowser.setFixedSize(QSize(580, 495))
-        self.textBrowser.move(10, 75)
-        self.textBrowser.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;")
-        self.textBrowser.setHtml(SendHtmlHello)
-        # self.cursot = self.textBrowser.textCursor()
-        # self.textBrowser.moveCursor(self.cursot.End)
-        # QApplication.processEvents()
+        self.listWidget = QListWidget(self)
+        self.listWidget.setFixedSize(QSize(580, 495))
+        self.listWidget.move(10, 75)
+        self.listWidget.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;")
+        
+        widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
+        item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, widget)
         # 绑定槽
         self.pushButtonEye.pressed.connect(self.EyePressed)
         self.pushButtonEye.released.connect(self.EyeReleased)
@@ -311,7 +431,7 @@ class Window(FramelessWindow):
     
     def Clear(self) -> None:
         """清屏"""
-        self.textBrowser.clear()
+        self.listWidget.clear()
         return
     
     def GetName(self) -> str:
@@ -335,29 +455,32 @@ class Window(FramelessWindow):
     
     def WindowTextReceiv(self, msg) -> None:
         """服务器输出"""
-        msg = msg.replace("\n", "<br>")
-        self.textBrowser.append(SendHtmlLeft.format(self.BotName, msg))
-        cursot = self.textBrowser.textCursor()
-        self.textBrowser.moveCursor(cursot.End)
-        QApplication.processEvents()
+        widget = DrawingBubble(msg, self.listWidget.width(), "left")
+        item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, widget)
+        self.listWidget.repaint()
         return
     
     def WindowTextLog(self, msg) -> None:
         """日志类输出"""
-        msg = msg.replace("\n", "<br>")
-        self.textBrowser.append(SendHtmlErro.format(msg))
-        cursot = self.textBrowser.textCursor()
-        self.textBrowser.moveCursor(cursot.End)
-        QApplication.processEvents()
+        widget = DrawingBubble(msg, self.listWidget.width(), "center")
+        item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, widget)
+        self.listWidget.repaint()
         return
      
     def WindowTextSend(self, msg) -> None:
         """用户输出"""
-        msg = msg.replace("\n", "<br>")
-        self.textBrowser.append(SendHtmlRight.format(self.GetName(), msg))
-        cursot = self.textBrowser.textCursor()
-        self.textBrowser.moveCursor(cursot.End)
-        QApplication.processEvents()
+        widget = DrawingBubble(msg, self.listWidget.width(), "right")
+        item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, widget)
+        self.listWidget.repaint()
         return
 
 if __name__ == '__main__':
