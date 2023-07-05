@@ -259,7 +259,7 @@ class Window(FramelessWindow):
         self.pushButtonSend.move(540, 580)
         # self.pushButtonSend.setIcon(QIcon(str(self.PATH / "img" / "send.png")))
         self.pushButtonSend.setIcon(QIcon(QPixmap(':/img/send.png')))
-        self.pushButtonSend.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
+        self.pushButtonSend.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         self.pushButtonSend.setShortcut (Qt.Key_Return )
         # 隐藏按钮
         self.pushButtonEye = QPushButton(self)
@@ -268,7 +268,7 @@ class Window(FramelessWindow):
         self.pushButtonEye.move(190, 35)
         # self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
         self.pushButtonEye.setIcon(QIcon(QPixmap(':/img/eye.png')))
-        self.pushButtonEye.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
+        self.pushButtonEye.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         # 登录按钮
         self.pushButtonSing = QPushButton(self)
         self.pushButtonSing.setToolTip("登录")
@@ -276,7 +276,7 @@ class Window(FramelessWindow):
         self.pushButtonSing.move(420, 35)
         # self.pushButtonSing.setIcon(QIcon(str(self.PATH / "img" / "sing.png")))
         self.pushButtonSing.setIcon(QIcon(QPixmap(':/img/sing.png')))
-        self.pushButtonSing.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
+        self.pushButtonSing.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         # 登出按钮
         self.pushButtonExit = QPushButton(self)
         self.pushButtonExit.setToolTip("登出")
@@ -284,7 +284,7 @@ class Window(FramelessWindow):
         self.pushButtonExit.move(480, 35)
         # self.pushButtonExit.setIcon(QIcon(str(self.PATH / "img" / "exit.png")))
         self.pushButtonExit.setIcon(QIcon(QPixmap(':/img/exit.png')))
-        self.pushButtonExit.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
+        self.pushButtonExit.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         # 清空按钮
         self.pushButtonClear = QPushButton(self)
         self.pushButtonClear.setToolTip("清空消息框")
@@ -292,38 +292,38 @@ class Window(FramelessWindow):
         self.pushButtonClear.move(540, 35)
         # self.pushButtonClear.setIcon(QIcon(str(self.PATH / "img" / "clear.png")))
         self.pushButtonClear.setIcon(QIcon(QPixmap(':/img/clear.png')))
-        self.pushButtonClear.setStyleSheet("background: rgba(225,225,225,100);border-style: outset;")
+        self.pushButtonClear.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         # 账户输入窗口
         self.UserId = QLineEdit(self)
         self.UserId.setPlaceholderText("使用前请先输入账户ID")
         self.UserId.setFixedSize(QSize(170, 30))
         self.UserId.move(10, 35)
-        self.UserId.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
+        self.UserId.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
         self.UserId.setEchoMode(QLineEdit.Password)
         # 用户名输入窗口
         self.UserName = QLineEdit(self)
         self.UserName.setPlaceholderText("昵称 默认为 用户")
         self.UserName.setFixedSize(QSize(160, 30))
         self.UserName.move(250, 35)
-        self.UserName.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
+        self.UserName.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
         # 文字发送窗口 
         self.SendTxt = QLineEdit(self)
         self.SendTxt.setPlaceholderText("请输入文字")
         self.SendTxt.setFixedSize(QSize(520, 40))
         self.SendTxt.move(10, 580)
-        self.SendTxt.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;")
+        self.SendTxt.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
         # 对话框
         self.listWidget = QListWidget(self)
         self.listWidget.setFixedSize(QSize(580, 495))
         self.listWidget.move(10, 75)
         self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.listWidget.setFocus(Qt.NoFocusReason)
-        # self.listWidget.clearFocus()
-        self.listWidget.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;outline: none;")
+        self.listWidget.setStyleSheet("QListWidget{background: rgba(225,225,225,100);font-family: Microsoft YaHei;}"
+                                      "QListWidget::item:selected:!active{border-width:none; background:transparent;}")
+
         
         widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
-        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
+        item.setSelected
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
@@ -468,7 +468,6 @@ class Window(FramelessWindow):
         """服务器输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "left")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
-        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
@@ -481,7 +480,6 @@ class Window(FramelessWindow):
         """日志类输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
-        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
@@ -494,7 +492,6 @@ class Window(FramelessWindow):
         """用户输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "right")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
-        item.setFlags(Qt.ItemIsSelectable)  # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
