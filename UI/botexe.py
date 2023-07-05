@@ -298,20 +298,20 @@ class Window(FramelessWindow):
         self.UserId.setPlaceholderText("使用前请先输入账户ID")
         self.UserId.setFixedSize(QSize(170, 30))
         self.UserId.move(10, 35)
-        self.UserId.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
+        self.UserId.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
         self.UserId.setEchoMode(QLineEdit.Password)
         # 用户名输入窗口
         self.UserName = QLineEdit(self)
         self.UserName.setPlaceholderText("昵称 默认为 用户")
         self.UserName.setFixedSize(QSize(160, 30))
         self.UserName.move(250, 35)
-        self.UserName.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
+        self.UserName.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
         # 文字发送窗口 
         self.SendTxt = QLineEdit(self)
         self.SendTxt.setPlaceholderText("请输入文字")
         self.SendTxt.setFixedSize(QSize(520, 40))
         self.SendTxt.move(10, 580)
-        self.SendTxt.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);font-family: Microsoft YaHei;font-size: 16px;}")
+        self.SendTxt.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
         # 对话框
         self.listWidget = QListWidget(self)
         self.listWidget.setFixedSize(QSize(580, 495))
