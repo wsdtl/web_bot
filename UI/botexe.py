@@ -167,7 +167,6 @@ class DrawingBubble(QLabel):
         fontRow = textNew.count("\n") + 1
         return textNew, int(textMaxLen) + 15, int(font.height() * fontRow) + 5
 
-
 class WebsockRecvThread(QThread):
     """消息接收进程"""
     def __init__(self, WebsockReceiveSingal: pyqtSignal, 
@@ -319,8 +318,6 @@ class Window(FramelessWindow):
         self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.listWidget.setStyleSheet("QListWidget{background: rgba(225,225,225,100);font-family: Microsoft YaHei;}"
                                       "QListWidget::item:selected:!active{border-width:none; background:transparent;}")
-
-        
         widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
         item.setSelected
@@ -348,7 +345,6 @@ class Window(FramelessWindow):
         self.titleBar.setDoubleClickEnabled(False)
         self.titleBar.maxBtn.deleteLater()  # 删除最大化按钮
         self.setResizeEnabled(False)  # 禁止手动拉伸
-        
         self.setWindowIcon(QIcon(':/img/bot.png'))  # 图标
         self.setWindowTitle('Xiaonan') # 标题
         self.setStyleSheet("border-radius:8px;font-family: Microsoft YaHei;font-size: 16px;")
