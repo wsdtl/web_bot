@@ -12,7 +12,8 @@ from PyQt5.QtWidgets import (
     QPushButton, 
     QLineEdit,
     QListWidget,
-    QListWidgetItem
+    QListWidgetItem,
+    QLabel
     )
 from PyQt5.QtGui import (
     QIcon, 
@@ -40,9 +41,11 @@ from qframelesswindow import (
 
 import imge
 
-class DrawingBubble(QWidget):
+class DrawingBubble(QLabel):
     def __init__(self, text: str, parentWidth: int, align: str):
         super().__init__()
+        self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setAutoFillBackground(False)
         self.fontMaxWidth = 558
         self.parentWidth = parentWidth
         self.align = align
@@ -313,10 +316,14 @@ class Window(FramelessWindow):
         self.listWidget = QListWidget(self)
         self.listWidget.setFixedSize(QSize(580, 495))
         self.listWidget.move(10, 75)
-        self.listWidget.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;")
+        self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.listWidget.setFocus(Qt.NoFocusReason)
+        # self.listWidget.clearFocus()
+        self.listWidget.setStyleSheet("background: rgba(225,225,225,100);font-family: Microsoft YaHei;outline: none;")
         
         widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
@@ -364,8 +371,10 @@ class Window(FramelessWindow):
             self.LogInfoSingal.emit("账户ID应为纯数字")
             return
         if user_id in self.connections:
-            self.LogInfoSingal.emit(f"账户{user_id}已登录，请不要重复登录")
+            self.LogInfoSingal.emit(f"账户{user_id}已登录，请不要重复登录") 
             return  
+        # 鼠标繁忙
+        self.setCursor(Qt.BusyCursor)
         self.LogInfoSingal.emit("正在登录请稍后")
         self.UserId.setReadOnly(True)
         try:  
@@ -384,6 +393,8 @@ class Window(FramelessWindow):
             self.LogInfoSingal.emit(f"服务器掉线了") 
         except Exception:
             self.LogInfoSingal.emit(f"服务出错了") 
+        # 鼠标恢复
+        self.setCursor(Qt.ArrowCursor)    
         return
 
     def EyePressed(self) -> None:
@@ -457,9 +468,12 @@ class Window(FramelessWindow):
         """服务器输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "left")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
+        # 定位到最后一行
+        self.listWidget.setCurrentRow(self.listWidget.count() - 1)
         self.listWidget.repaint()
         return
     
@@ -467,9 +481,12 @@ class Window(FramelessWindow):
         """日志类输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setFlags(Qt.ItemIsSelectable) # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
+        # 定位到最后一行
+        self.listWidget.setCurrentRow(self.listWidget.count() - 1)
         self.listWidget.repaint()
         return
      
@@ -477,9 +494,12 @@ class Window(FramelessWindow):
         """用户输出"""
         widget = DrawingBubble(msg, self.listWidget.width(), "right")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
+        item.setFlags(Qt.ItemIsSelectable)  # 设置不可选中
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
+        # 定位到最后一行
+        self.listWidget.setCurrentRow(self.listWidget.count() - 1)
         self.listWidget.repaint()
         return
 
