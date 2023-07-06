@@ -317,6 +317,7 @@ class Window(FramelessWindow):
         self.pushButtonSend.setIcon(QIcon(QPixmap(':/img/send.png')))
         self.pushButtonSend.setStyleSheet(
             "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
+            "QToolTip{ background: #d3d3d3;}"
         )
         self.pushButtonSend.setShortcut (Qt.Key_Return )
         # 隐藏按钮
@@ -328,6 +329,7 @@ class Window(FramelessWindow):
         self.pushButtonEye.setIcon(QIcon(QPixmap(':/img/eye.png')))
         self.pushButtonEye.setStyleSheet(
             "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
+            "QToolTip{ background: #d3d3d3;}"
         )
         # 登录按钮
         self.pushButtonSing = QPushButton(self)
@@ -338,6 +340,7 @@ class Window(FramelessWindow):
         self.pushButtonSing.setIcon(QIcon(QPixmap(':/img/sing.png')))
         self.pushButtonSing.setStyleSheet(
             "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
+            "QToolTip{ background: #d3d3d3;}"
         )
         # 登出按钮
         self.pushButtonExit = QPushButton(self)
@@ -348,6 +351,7 @@ class Window(FramelessWindow):
         self.pushButtonExit.setIcon(QIcon(QPixmap(':/img/exit.png')))
         self.pushButtonExit.setStyleSheet(
             "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
+            "QToolTip{ background: #d3d3d3;}"
         )
         # 清空按钮
         self.pushButtonClear = QPushButton(self)
@@ -358,6 +362,7 @@ class Window(FramelessWindow):
         self.pushButtonClear.setIcon(QIcon(QPixmap(':/img/clear.png')))
         self.pushButtonClear.setStyleSheet(
             "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
+            "QToolTip{ background: #d3d3d3;}"
         )
         # 账户输入窗口
         self.userId = QLineEdit(self)
