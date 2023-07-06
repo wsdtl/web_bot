@@ -25,7 +25,8 @@ from PyQt5.QtGui import (
     QPaintEvent,
     QColor, 
     QFontMetrics, 
-    QLinearGradient
+    QLinearGradient,
+    QMouseEvent
     )
 from PyQt5.QtCore import (
     QThread,
@@ -166,67 +167,90 @@ class DrawingBubble(QLabel):
         textNew = textNew.rstrip()
         fontRow = textNew.count("\n") + 1
         return textNew, int(textMaxLen) + 15, int(font.height() * fontRow) + 5
+    
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
+                
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
+            
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
 
-class WebsockRecvThread(QThread):
-    """消息接收进程"""
-    def __init__(self, WebsockReceiveSingal: pyqtSignal, 
-                 LogInfoSingal: pyqtSignal, 
-                 ConnectionsSinagl: pyqtSignal,
-                 websock: WebSocket,
-                 UserId: str
-        ):
+class ListWidget(QListWidget):
+    def __init__(self) -> None:
         super().__init__()
-        self.WebsockReceiveSingal: pyqtSignal = WebsockReceiveSingal
-        self.LogInfoSingal: pyqtSignal = LogInfoSingal
-        self.ConnectionsSinagl: pyqtSignal = ConnectionsSinagl
+        
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
+                
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
+            
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        event.ignore()
+    
+
+class WebsockrecvThread(QThread):
+    """消息接收进程"""
+    def __init__(self, websockReceiveSingal: pyqtSignal, 
+                 logInfoSingal: pyqtSignal, 
+                 connectionsSinagl: pyqtSignal,
+                 websock: WebSocket,
+                 userId: str
+        ) -> None:
+        super().__init__()
+        self.websockReceiveSingal: pyqtSignal = websockReceiveSingal
+        self.logInfoSingal: pyqtSignal = logInfoSingal
+        self.connectionsSinagl: pyqtSignal = connectionsSinagl
         self.websock: WebSocket = websock
-        self.UserId: str = UserId
+        self.userId: str = userId
         
     def run(self) -> None:
             self.HelloData = {
                 "msg" : "i miss you xiaonan",
-                "user_id": self.UserId
+                "user_id": self.userId
             }
             try:
-                self.websock.send(self.to_json(self.HelloData))
-                self.LogInfoSingal.emit(f"账户{self.UserId}登录成功")
+                self.websock.send(self.toJson(self.HelloData))
+                self.logInfoSingal.emit(f"账户{self.userId}登录成功")
                 while True:
                     msg = self.websock.recv()
                     msg = json.loads(msg)
                     if "msg" in msg:
-                        self.WebsockReceiveSingal.emit(msg["msg"]) 
+                        self.websockReceiveSingal.emit(msg["msg"]) 
             except Exception as e:
-                self.LogInfoSingal.emit(f"与服务器已失去连接，请重新登录")
+                self.logInfoSingal.emit(f"与服务器已失去连接，请重新登录")
             finally:
-                self.ConnectionsSinagl.emit(self.UserId)
+                self.connectionsSinagl.emit(self.userId)
             return    
         
-    def to_json(self, data: dict) -> str:
+    def toJson(self, data: dict) -> str:
         return json.dumps(data)
 
 class WebsockSendThread(QThread):
     """消息发送进程"""
     def __init__(self,
                  msg: str,
-                 UserId: str,
+                 userId: str,
                  websock: WebSocket
-        ):
+        ) -> None:
         super().__init__()
         self.msg: str = msg
-        self.UserId: str = UserId
+        self.userId: str = userId
         self.websock: WebSocket = websock
         
     def run(self) -> None:
             try:
-                self.websock.send(self.to_json(self.msg, self.UserId))
+                self.websock.send(self.toJson(self.msg, self.userId))
             except Exception as e:
                 pass
             return    
         
-    def to_json(self, msg: str, UserId: str) -> str:
+    def toJson(self, msg: str, userId: str) -> str:
         data = {
             "msg": msg,
-            "user_id": UserId
+            "user_id": userId
         }
         return json.dumps(data) 
 
@@ -234,23 +258,23 @@ class Window(FramelessWindow):
     """窗口监控类"""
     PATH = Path() / os.path.dirname(os.path.abspath(__file__))
     # 声明一个信号 只能放在函数的外面
-    WebsockReceiveSingal = pyqtSignal(str)
-    LogInfoSingal = pyqtSignal(str)
-    SendSingal = pyqtSignal(str)
-    ConnectionsSinagl = pyqtSignal(str)
+    websockReceiveSingal = pyqtSignal(str)
+    logInfoSingal = pyqtSignal(str)
+    sendSingal = pyqtSignal(str)
+    connectionsSinagl = pyqtSignal(str)
     
     def __init__(self) -> None:
         super().__init__()
         self.connections :Dict[str: WebSocket] = {}
         self.thread: Dict[str: QThread] = {}
         self.name: str = "用户"
-        self.BotName: str = "晓楠"
-        self.WsUrl: str = "ws://dengxiaonan.cn:8090/xiaonan"
+        self.botName: str = "晓楠"
+        self.wsUrl: str = "ws://dengxiaonan.cn:8090/xiaonan"
         self.init_ui()
 
     def init_ui(self) -> None:
         """初始化"""
-        self.InitWindow()
+        self.initWindow()
         # 发送按钮
         self.pushButtonSend = QPushButton(self)
         self.pushButtonSend.setToolTip("发送")
@@ -293,26 +317,27 @@ class Window(FramelessWindow):
         self.pushButtonClear.setIcon(QIcon(QPixmap(':/img/clear.png')))
         self.pushButtonClear.setStyleSheet("QPushButton{background: rgba(225,225,225,100);border-style: outset;}")
         # 账户输入窗口
-        self.UserId = QLineEdit(self)
-        self.UserId.setPlaceholderText("使用前请先输入账户ID")
-        self.UserId.setFixedSize(QSize(170, 30))
-        self.UserId.move(10, 35)
-        self.UserId.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
-        self.UserId.setEchoMode(QLineEdit.Password)
+        self.userId = QLineEdit(self)
+        self.userId.setPlaceholderText("使用前请先输入账户ID")
+        self.userId.setFixedSize(QSize(170, 30))
+        self.userId.move(10, 35)
+        self.userId.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
+        self.userId.setEchoMode(QLineEdit.Password)
         # 用户名输入窗口
-        self.UserName = QLineEdit(self)
-        self.UserName.setPlaceholderText("昵称 默认为 用户")
-        self.UserName.setFixedSize(QSize(160, 30))
-        self.UserName.move(250, 35)
-        self.UserName.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
+        self.userName = QLineEdit(self)
+        self.userName.setPlaceholderText("昵称 默认为 用户")
+        self.userName.setFixedSize(QSize(160, 30))
+        self.userName.move(250, 35)
+        self.userName.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
         # 文字发送窗口 
-        self.SendTxt = QLineEdit(self)
-        self.SendTxt.setPlaceholderText("请输入文字")
-        self.SendTxt.setFixedSize(QSize(520, 40))
-        self.SendTxt.move(10, 580)
-        self.SendTxt.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
+        self.sendTxt = QLineEdit(self)
+        self.sendTxt.setPlaceholderText("请输入文字")
+        self.sendTxt.setFixedSize(QSize(520, 40))
+        self.sendTxt.move(10, 580)
+        self.sendTxt.setStyleSheet("QLineEdit{background: rgba(225,225,225,100);}")
         # 对话框
-        self.listWidget = QListWidget(self)
+        self.listWidget = ListWidget()
+        self.listWidget.setParent(self)
         self.listWidget.setFixedSize(QSize(580, 495))
         self.listWidget.move(10, 75)
         self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -320,7 +345,6 @@ class Window(FramelessWindow):
                                       "QListWidget::item:selected:!active{border-width:none; background:transparent;}")
         widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
-        item.setSelected
         item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
@@ -332,19 +356,21 @@ class Window(FramelessWindow):
         self.pushButtonSend.clicked.connect(self.Send)
         self.pushButtonClear.clicked.connect(self.Clear)
         # 绑定信号
-        self.WebsockReceiveSingal.connect(self.WindowTextReceiv)
-        self.LogInfoSingal.connect(self.WindowTextLog)
-        self.SendSingal.connect(self.WindowTextSend)
-        self.ConnectionsSinagl.connect(self.ConnectionsClose)
+        self.websockReceiveSingal.connect(self.WindowTextReceiv)
+        self.logInfoSingal.connect(self.WindowTextLog)
+        self.sendSingal.connect(self.WindowTextSend)
+        self.connectionsSinagl.connect(self.ConnectionsClose)
         return
     
-    def InitWindow(self):
+    def initWindow(self) -> None:
         """初始化窗口"""
         self.setFixedSize(600, 630)
         self.setTitleBar(StandardTitleBar(self))
         self.titleBar.setDoubleClickEnabled(False)
         self.titleBar.maxBtn.deleteLater()  # 删除最大化按钮
         self.setResizeEnabled(False)  # 禁止手动拉伸
+        self.moveFlag = False   # 鼠标移动标志
+        self.setMouseTracking(True) # 鼠标跟踪
         self.setWindowIcon(QIcon(':/img/bot.png'))  # 图标
         self.setWindowTitle('Xiaonan') # 标题
         self.setStyleSheet("border-radius:8px;font-family: Microsoft YaHei;font-size: 16px;")
@@ -359,54 +385,54 @@ class Window(FramelessWindow):
     
     def Sing(self) -> None:
         """登录"""   
-        user_id = self.UserId.text()
+        user_id = self.userId.text()
         if not user_id:
-            self.LogInfoSingal.emit("请先填写账户ID")
+            self.logInfoSingal.emit("请先填写账户ID")
             return
         if not isinstance(user_id, str):
-            self.LogInfoSingal.emit("账户ID应为纯数字")
+            self.logInfoSingal.emit("账户ID应为纯数字")
             return
         if user_id in self.connections:
-            self.LogInfoSingal.emit(f"账户{user_id}已登录，请不要重复登录") 
+            self.logInfoSingal.emit(f"账户{user_id}已登录，请不要重复登录") 
             return  
         # 鼠标繁忙
         self.setCursor(Qt.BusyCursor)
-        self.LogInfoSingal.emit("正在登录请稍后")
-        self.UserId.setReadOnly(True)
+        self.logInfoSingal.emit("正在登录请稍后")
+        self.userId.setReadOnly(True)
         try:  
-            websocket = create_connection(self.WsUrl)
+            websocket = create_connection(self.wsUrl)
             self.connections[user_id] = websocket
-            RecvThread = WebsockRecvThread(
-            self.WebsockReceiveSingal,
-            self.LogInfoSingal,
-            self.ConnectionsSinagl,
+            recvThread = WebsockrecvThread(
+            self.websockReceiveSingal,
+            self.logInfoSingal,
+            self.connectionsSinagl,
             self.connections[user_id],
             user_id
             )  # 创建线程
-            RecvThread.start()  # 开始线程
-            self.thread[user_id] = RecvThread 
+            recvThread.start()  # 开始线程
+            self.thread[user_id] = recvThread 
         except ConnectionRefusedError:
-            self.LogInfoSingal.emit(f"服务器掉线了") 
+            self.logInfoSingal.emit(f"服务器掉线了") 
         except Exception:
-            self.LogInfoSingal.emit(f"服务出错了") 
+            self.logInfoSingal.emit(f"服务出错了") 
         # 鼠标恢复
         self.setCursor(Qt.ArrowCursor)    
         return
 
     def EyePressed(self) -> None:
         """按下眼睛"""
-        self.UserId.setEchoMode(QLineEdit.Normal)
+        self.userId.setEchoMode(QLineEdit.Normal)
         return
     
     def EyeReleased(self) -> None:
         """松开眼睛"""    
-        self.UserId.setEchoMode(QLineEdit.Password)
+        self.userId.setEchoMode(QLineEdit.Password)
         return
    
     def Exit(self) -> None:
         """退出登录"""
         if not self.connections:
-            self.LogInfoSingal.emit("还没有登录呢")
+            self.logInfoSingal.emit("还没有登录呢")
             return
         for ws in self.connections.values():
             ws.close()
@@ -414,24 +440,24 @@ class Window(FramelessWindow):
             thread.quit()
         self.connections.clear()
         self.thread.clear()
-        self.UserId.setReadOnly(False) 
+        self.userId.setReadOnly(False) 
         return
     
     def Send(self) -> None:
         """发送信息"""
-        user_id = self.UserId.text()
+        user_id = self.userId.text()
         if not user_id:
-            self.LogInfoSingal.emit("请先填写账户ID")
+            self.logInfoSingal.emit("请先填写账户ID")
             return
         if not user_id in self.connections:
-            self.LogInfoSingal.emit("还没有登录呢")  
+            self.logInfoSingal.emit("还没有登录呢")  
             return
-        msg = self.SendTxt.text()
+        msg = self.sendTxt.text()
         if msg and isinstance(msg, str):
             self.SendThread = WebsockSendThread(msg, user_id, self.connections[user_id])  # 创建线程
             self.SendThread.start()  # 开始线程
-            self.SendSingal.emit(msg)
-            self.SendTxt.clear()
+            self.sendSingal.emit(msg)
+            self.sendTxt.clear()
             return
         else:
             return
@@ -443,9 +469,9 @@ class Window(FramelessWindow):
     
     def GetName(self) -> str:
         """获取用户昵称"""
-        name = str(self.UserName.text())
+        name = str(self.userName.text())
         if name:
-            return self.UserName.text()
+            return self.userName.text()
         else:
             return self.name
 
@@ -457,7 +483,7 @@ class Window(FramelessWindow):
             thread.quit()
         self.connections.clear()
         self.thread.clear()
-        self.UserId.setReadOnly(False) 
+        self.userId.setReadOnly(False) 
         return
     
     def WindowTextReceiv(self, msg) -> None:
@@ -495,7 +521,25 @@ class Window(FramelessWindow):
         self.listWidget.setCurrentRow(self.listWidget.count() - 1)
         self.listWidget.repaint()
         return
-
+    
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.LeftButton:
+            self.moveFlag = True
+            self.mouseX = event.globalX()
+            self.mouseY = event.globalY()
+            self.winX = self.x()
+            self.winY = self.y()
+                
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        if self.moveFlag:
+            self.move(
+                self.winX + event.globalX() - self.mouseX, 
+                self.winY + event.globalY() - self.mouseY
+            )
+            
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        self.moveFlag = False
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = Window()
