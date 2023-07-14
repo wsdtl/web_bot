@@ -83,6 +83,11 @@ class DialogRight(QWidget):
         # 绘制背景
         painter.setBrush(QColor(255, 255, 255, 200))     
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
+        # 画阴影
+        borderColor= QColor(0, 0, 0)
+        borderColor.setNamedColor('#d3d3d3')
+        painter.setPen(borderColor)
+        painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
         # 设置笔 文字颜色
@@ -213,6 +218,11 @@ class DialogOver(QWidget):
         painter.setPen(QColor(255, 255, 255))
         # 绘制背景
         painter.setBrush(QColor(255, 255, 255, 200))     
+        painter.drawRoundedRect(event.rect(), 16.0, 16.0)
+        # 画阴影
+        borderColor= QColor(0, 0, 0)
+        borderColor.setNamedColor('#d3d3d3')
+        painter.setPen(borderColor)
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
