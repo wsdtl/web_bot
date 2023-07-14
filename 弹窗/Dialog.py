@@ -53,7 +53,7 @@ class DialogRight(QWidget):
         self.resize(240, 150)
         self.moveSizeW = 16   # 每个框的宽度偏移量
         self.moveSizeH = 10   # 每个框的高度偏移量
-        self.moveSize = 0     # 每个宽的初始高度偏移量
+        self.moveSize = 0     # 框的初始高度偏移量
         self._dieTime = _dieTime
         self.moveDialog()
         self.showTime = QTimer(self)
@@ -81,7 +81,7 @@ class DialogRight(QWidget):
         # 设置背景笔颜色
         painter.setPen(QColor(255, 255, 255))
         # 绘制背景
-        painter.setBrush(QColor(255, 255, 255, 240))     
+        painter.setBrush(QColor(255, 255, 255, 200))     
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
@@ -105,7 +105,7 @@ class DialogRight(QWidget):
             textEnd = text[maxRow]
             textStart = "\n".join(textStart)
             textEnd = textEnd[:-1] + "...."
-            text = textStart + "\n"+ textEnd
+            text = textStart + "\n" + textEnd
         painter.drawText(
             30, 
             QFontMetrics(font).height() * 2, 
@@ -212,7 +212,7 @@ class DialogOver(QWidget):
         # 设置背景笔颜色
         painter.setPen(QColor(255, 255, 255))
         # 绘制背景
-        painter.setBrush(QColor(255, 255, 255, 240))     
+        painter.setBrush(QColor(255, 255, 255, 200))     
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
@@ -288,22 +288,18 @@ class Window(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setWindowTitle("Window")
-        self.resize(450, 450)
+        self.resize(210, 210)
         
         self.but = QPushButton(self)
         self.but.setText("生成一个消息框")
-        self.but.resize(400, 400)
+        self.but.resize(200, 200)
         self.but.clicked.connect(self.dialog)
         
     def dialog(self) -> None:
         DialogOver("我是内容", title="我是标题", flags= "danger")
         DialogRight("我是内容", title="我是标题", flags= "danger")
-        self.activateWindow()
+        self.activateWindow() # 将活动窗口设置回来
         
-        
-
-        
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
