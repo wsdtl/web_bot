@@ -7,6 +7,8 @@
         <file>img/eye.png</file>
         <file>img/send.png</file>
         <file>img/sing.png</file>
+        <file>img/head.png</file>
+        <file>img/headimg.png</file>
     </qresource>
 </RCC>
 

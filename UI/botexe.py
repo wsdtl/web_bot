@@ -1,5 +1,6 @@
 import os
 import sys
+import datetime
 import ujson as json
 from websocket import create_connection
 from websocket._core import WebSocket
@@ -14,7 +15,8 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QLabel,
-    QMenu
+    QMenu,
+    QFileDialog
     )
 from PyQt5.QtGui import (
     QIcon, 
@@ -28,7 +30,10 @@ from PyQt5.QtGui import (
     QColor, 
     QFontMetrics, 
     QLinearGradient,
-    QMouseEvent
+    QMouseEvent,
+    QImage,
+    QPainterPath
+  
     )
 from PyQt5.QtCore import (
     QThread,
@@ -36,7 +41,8 @@ from PyQt5.QtCore import (
     QSize,
     QPoint,
     Qt, 
-    QPointF
+    QPointF,
+    QRect
     )
 from qframelesswindow import (
     FramelessWindow,
@@ -46,20 +52,28 @@ from qframelesswindow import (
 import imge
 
 class DrawingBubble(QLabel):
-    def __init__(self, text: str, parentWidth: int, align: str):
-        super().__init__()
+    
+    PATH = Path() / os.path.dirname(os.path.abspath(__file__))
+    
+    def __init__(self, text: str, parentWidth: int, align: str, name: str = "用户"):
+        super().__init__() 
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.fontMaxWidth = parentWidth - 100
+        self.fontMaxWidth = parentWidth - 130
         self.parentWidth = parentWidth
         self.align = align
+        self.time_str = datetime.datetime.strftime(datetime.datetime.now(),'%H:%M:%S')
+        self.name = self.time_str +"  "+ name
         self.fontSize = 12
         self.font = QFont('Microsoft YaHei', self.fontSize)
         text, w, h = self.prepare(text)
         self.text = text
         self.w = w
         self.h = h
+        img = QPixmap(str(self.PATH / "img" / "head.png"))
+        self.img = img.scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         self.moveSize = 10
-        self.setFixedSize(self.parentWidth, self.h + self.moveSize)
+        self.moveSizeH = 26
+        self.setFixedSize(self.parentWidth, self.h + self.moveSizeH)
             
     def paintEvent(self, event: QPaintEvent) -> None:
         # 开始绘制       
@@ -80,7 +94,7 @@ class DrawingBubble(QLabel):
         painter.setFont(QFont('Microsoft YaHei', 16))
         # 文字颜色
         textColor = QColor(0, 0, 0)
-        textColor.setNamedColor('#ffd2b6')
+        textColor.setNamedColor('#262626')
         # 画出文本
         painter.setPen(textColor)
         painter.drawText(event.rect(), Qt.AlignCenter, self.text)
@@ -100,18 +114,32 @@ class DrawingBubble(QLabel):
         # 阴影颜色
         borderColor= QColor(0, 0, 0)
         borderColor.setNamedColor('#d3d3d3')
+        # user用户名颜色
+        userColor= QColor(0, 0, 0)
+        userColor.setNamedColor('#262626')
         # 文字颜色
         textColor = QColor(0, 0, 0)
         # 背景
         painter.setBrush(backgroundColor)
-        painter.drawRoundedRect(self.moveSize + 1, self.moveSize + 1, self.w -2 , self.h -2, 6, 6)
+        painter.drawRoundedRect(self.moveSize * 2 + self.img.width() + 1, self.moveSizeH + 1, self.w -2 , self.h -2, 6, 6)
         # 阴影
         painter.setPen(borderColor)
-        painter.drawRoundedRect(self.moveSize, self.moveSize, self.w , self.h, 6, 6)
+        painter.drawRoundedRect(self.moveSize * 2 + self.img.width(), self.moveSizeH, self.w , self.h, 6, 6)
         # 画出文本
         painter.setPen(textColor)
-        painter.drawText(self.moveSize + 5, self.moveSize, self.w, self.h, Qt.AlignLeft, self.text)
-
+        painter.drawText(self.moveSize * 2 + self.img.width() + 5, self.moveSizeH, self.w, self.h, Qt.AlignLeft, self.text)
+        # 画头像
+        painter.drawPixmap(QRect(self.moveSize, self.moveSizeH // 2, self.img.width(), self.img.height()), self.img)
+         # 画用户名
+        painter.setPen(userColor)
+        painter.drawText(
+            self.moveSize + self.img.width() + 5,
+            0, 
+            self.w + QFontMetrics(self.font).width(self.time_str + "  晓楠") + 5,
+            self.h,
+            Qt.AlignLeft,
+            self.time_str + "  晓楠")
+        
     def drawTextRight(self, event: QPaintEvent, painter: QPainter) -> None:
         # 设置笔
         painter.setFont(self.font)
@@ -129,18 +157,34 @@ class DrawingBubble(QLabel):
         borderColor.setNamedColor('#d3d3d3')
         # 文字颜色
         textColor = QColor(0, 0, 0)
+        # user用户名颜色
+        userColor= QColor(0, 0, 0)
+        userColor.setNamedColor('#262626')
         # 右边偏移差量
+        # moveRight = self.parentWidth - self.w
         moveRight = self.parentWidth - self.w
         # 背景
         painter.setBrush(backgroundColor)
-        painter.drawRoundedRect(moveRight -self.moveSize + 1,  self.moveSize + 1, self.w -2 , self.h -2, 6, 6)
+        painter.drawRoundedRect(moveRight - self.moveSize * 2 - self.img.width() + 1,  self.moveSizeH + 1, self.w -2 , self.h -2, 6, 6)
         # 阴影
         painter.setPen(borderColor)
-        painter.drawRoundedRect(moveRight - self.moveSize, self.moveSize, self.w , self.h, 6, 6)
+        painter.drawRoundedRect(moveRight - self.moveSize * 2 - self.img.width(), self.moveSizeH, self.w , self.h, 6, 6)
         # 画出文本
         painter.setPen(textColor)
-        painter.drawText(moveRight - self.moveSize + 5, self.moveSize, self.w, self.h, Qt.AlignLeft, self.text)
-    
+        painter.drawText(moveRight - self.moveSize * 2 - self.img.width() + 5, self.moveSizeH, self.w, self.h, Qt.AlignLeft, self.text)
+         # 画头像
+        painter.drawPixmap(QRect(self.parentWidth - self.img.width() - self.moveSize, self.moveSizeH // 2, self.img.width(), self.img.height()), self.img)
+        # 画用户名
+        painter.setPen(userColor)
+        painter.drawText(
+            self.parentWidth - self.moveSize  - self.img.width() - QFontMetrics(self.font).width(self.name) - 5, 
+            0, 
+            QFontMetrics(self.font).width(self.name), 
+            self.h, 
+            Qt.AlignLeft, 
+            self.name
+        )
+         
     def prepare(self, text: str) -> Tuple[str, int, int]:
         # 字符长度计算
         font = QFontMetrics(self.font)
@@ -171,8 +215,22 @@ class DrawingBubble(QLabel):
         return self.text
     
 class ListWidget(QListWidget):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, parten: QWidget) -> None:
+        super().__init__(parten)
+        self.setStyleSheet(
+        """
+        QListWidget
+        { 
+            background: rgba(225,225,225,70);
+            border-style: outset;
+            border-radius: 8px;
+        }
+        QListWidget:item:selected:!active
+        { 
+            border-width:none; 
+            background:transparent;
+        }
+        """)
         self.setContextMenuPolicy(Qt.CustomContextMenu)  # 创建QMenu信号事件
         self.customContextMenuRequested.connect(self.showMenu)
         self.contextMenu = QMenu(self)
@@ -182,8 +240,8 @@ class ListWidget(QListWidget):
         self.rRemove.triggered.connect(self.remove)
         self.contextMenu.setStyleSheet(
             "QMenu{ background: lightgray; color: #000000;}"  
-            "QMenu::item:text { padding-left: 10px;padding-right: 10px;}"
-            "QMenu::item:selected{ color: #1aa3ff;background-color: #e6f5ff;border-radius: 4px;}"
+            "QMenu:item:text { padding-left: 10px;padding-right: 10px;}"
+            "QMenu:item:selected{ color: #1aa3ff;background-color: #e6f5ff;border-radius: 4px;}"
         )
         
     #获取选择行的内容
@@ -221,8 +279,7 @@ class ListWidget(QListWidget):
             
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         super().mouseReleaseEvent(event)
-        event.ignore()
-    
+        event.ignore()    
 
 class WebsockrecvThread(QThread):
     """消息接收进程"""
@@ -287,6 +344,65 @@ class WebsockSendThread(QThread):
         }
         return json.dumps(data) 
 
+class PushButton(QPushButton):
+    def __init__(self, parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self.setStyleSheet(
+        """
+        QPushButton
+        { 
+            background-color: rgba(225,225,225,70); 
+            border-style: outset;
+            border-radius: 8px;
+        }
+        QToolTip
+        { 
+            background: #d3d3d3;
+        }
+        QPushButton:hover
+        { 
+            background-color: rgba(225,225,225,100);
+        }
+        """)
+        
+class PushButtonTool(QPushButton):
+    def __init__(self, parent: QWidget = None) -> None:
+        super().__init__(parent)
+        self.setStyleSheet(
+        """
+        QPushButton
+        { 
+            border-style: outset;
+            border-radius: 8px;
+        }
+        QToolTip
+        {
+            background: #d3d3d3;
+        }
+        QPushButton:hover
+        { 
+            background-color: rgba(225,225,225,100);
+            border-radius: 8px;
+        }
+        """)
+
+class LineEdit(QLineEdit):
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent)
+        self.setStyleSheet(
+        """
+        QLineEdit
+        { 
+            border-style: outset;
+            border-radius: 8px;
+            background: rgba(225,225,225,70);
+            font-family: Microsoft YaHei;
+            font-size: 16px;
+            padding-left: 10px;
+        }
+        """)
+        
+
 class Window(FramelessWindow):
     """窗口监控类"""
     PATH = Path() / os.path.dirname(os.path.abspath(__file__))
@@ -308,105 +424,72 @@ class Window(FramelessWindow):
     def init_ui(self) -> None:
         """初始化"""
         self.initWindow()
+        self.toolBut()
         # 发送按钮
-        self.pushButtonSend = QPushButton(self)
+        self.pushButtonSend = PushButton(self)
         self.pushButtonSend.setToolTip("发送")
         self.pushButtonSend.setFixedSize(QSize(50, 40))
-        self.pushButtonSend.move(540, 580)
+        self.pushButtonSend.move(540, 750)
         # self.pushButtonSend.setIcon(QIcon(str(self.PATH / "img" / "send.png")))
         self.pushButtonSend.setIcon(QIcon(QPixmap(':/img/send.png')))
-        self.pushButtonSend.setStyleSheet(
-            "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
-            "QToolTip{ background: #d3d3d3;}"
-        )
-        self.pushButtonSend.setShortcut (Qt.Key_Return )
+        self.pushButtonSend.setShortcut (Qt.Key_Return ) # 绑定回车
         # 隐藏按钮
-        self.pushButtonEye = QPushButton(self)
+        self.pushButtonEye = PushButton(self)
         self.pushButtonEye.setToolTip("查看账号")
         self.pushButtonEye.setFixedSize(QSize(50, 30))
         self.pushButtonEye.move(190, 35)
         # self.pushButtonEye.setIcon(QIcon(str(self.PATH / "img" / "eye.png")))
         self.pushButtonEye.setIcon(QIcon(QPixmap(':/img/eye.png')))
-        self.pushButtonEye.setStyleSheet(
-            "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
-            "QToolTip{ background: #d3d3d3;}"
-        )
         # 登录按钮
-        self.pushButtonSing = QPushButton(self)
+        self.pushButtonSing = PushButton(self)
         self.pushButtonSing.setToolTip("登录")
         self.pushButtonSing.setFixedSize(QSize(50, 30))
         self.pushButtonSing.move(420, 35)
         # self.pushButtonSing.setIcon(QIcon(str(self.PATH / "img" / "sing.png")))
         self.pushButtonSing.setIcon(QIcon(QPixmap(':/img/sing.png')))
-        self.pushButtonSing.setStyleSheet(
-            "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
-            "QToolTip{ background: #d3d3d3;}"
-        )
         # 登出按钮
-        self.pushButtonExit = QPushButton(self)
+        self.pushButtonExit = PushButton(self)
         self.pushButtonExit.setToolTip("登出")
         self.pushButtonExit.setFixedSize(QSize(50, 30))
         self.pushButtonExit.move(480, 35)
         # self.pushButtonExit.setIcon(QIcon(str(self.PATH / "img" / "exit.png")))
         self.pushButtonExit.setIcon(QIcon(QPixmap(':/img/exit.png')))
-        self.pushButtonExit.setStyleSheet(
-            "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
-            "QToolTip{ background: #d3d3d3;}"
-        )
         # 清空按钮
-        self.pushButtonClear = QPushButton(self)
+        self.pushButtonClear = PushButton(self)
         self.pushButtonClear.setToolTip("清空消息框")
         self.pushButtonClear.setFixedSize(QSize(50, 30))
         self.pushButtonClear.move(540, 35)
         # self.pushButtonClear.setIcon(QIcon(str(self.PATH / "img" / "clear.png")))
         self.pushButtonClear.setIcon(QIcon(QPixmap(':/img/clear.png')))
-        self.pushButtonClear.setStyleSheet(
-            "QPushButton{ background: rgba(225,225,225,100);border-style: outset;}"
-            "QToolTip{ background: #d3d3d3;}"
-        )
         # 账户输入窗口
-        self.userId = QLineEdit(self)
-        self.userId.setPlaceholderText("使用前请先输入账户ID")
+        self.userId = LineEdit(self)
+        self.userId.setPlaceholderText("请先输入账户ID")
         self.userId.setFixedSize(QSize(170, 30))
         self.userId.move(10, 35)
         self.userId.setEchoMode(QLineEdit.Password)
         self.userId.setFocus() # 设置焦点
         self.userId.setContextMenuPolicy(Qt.NoContextMenu) # 取消右键菜单
-        self.userId.setStyleSheet(
-            "QLineEdit{ background: rgba(225,225,225,100);}"
-            )
         # 用户名输入窗口
-        self.userName = QLineEdit(self)
+        self.userName = LineEdit(self)
         self.userName.setPlaceholderText("昵称 默认为 用户")
         self.userName.setFixedSize(QSize(160, 30))
         self.userName.move(250, 35)
         self.userName.setContextMenuPolicy(Qt.NoContextMenu) # 取消右键菜单
-        self.userName.setStyleSheet(
-            "QLineEdit{ background: rgba(225,225,225,100);}"
-        )
-        # 文字发送窗口 
-        self.sendTxt = QLineEdit(self)
+         # 文字发送窗口 
+        self.sendTxt = LineEdit(self)
         self.sendTxt.setPlaceholderText("请输入文字")
         self.sendTxt.setFixedSize(QSize(520, 40))
-        self.sendTxt.move(10, 580)
+        self.sendTxt.move(10, 750)
         self.sendTxt.setContextMenuPolicy(Qt.NoContextMenu) # 取消右键菜单
-        self.sendTxt.setStyleSheet(
-            "QLineEdit{ background: rgba(225,225,225,100);}"
-        )
         # 对话框
-        self.listWidget = ListWidget()
-        self.listWidget.setParent(self)
-        self.listWidget.setFixedSize(QSize(580, 495))
+        self.listWidget = ListWidget(self)
+        self.listWidget.setFixedSize(QSize(580, 665))
         self.listWidget.move(10, 75)
         self.listWidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff) # 删除垂直条
-        self.listWidget.setStyleSheet(
-            "QListWidget{ background: rgba(225,225,225,100);font-family: Microsoft YaHei;}"
-            "QListWidget::item:selected:!active{ border-width:none; background:transparent;}"
-        )
         widget = DrawingBubble("欢迎使用晓楠客户端", self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
         item.setData(Qt.UserRole, widget.getText())
-        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSizeH))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
         # 绑定槽
@@ -425,27 +508,86 @@ class Window(FramelessWindow):
     
     def initWindow(self) -> None:
         """初始化窗口"""
-        self.setFixedSize(600, 630)
+        self.setFixedSize(600, 800)
         self.setTitleBar(StandardTitleBar(self))
         self.titleBar.setDoubleClickEnabled(False)
+        self.setWindowFlags(Qt.WindowMinimizeButtonHint)
         self.titleBar.maxBtn.deleteLater()  # 删除最大化按钮
         self.setResizeEnabled(False)  # 禁止手动拉伸
         self.moveFlag = False   # 鼠标移动标志
         # self.setMouseTracking(True) # 鼠标跟踪
         self.setWindowIcon(QIcon(':/img/bot.png'))  # 图标
         self.setWindowTitle('Xiaonan') # 标题
-        self.setStyleSheet(
-            "border-radius:8px;font-family: Microsoft YaHei;font-size: 16px;"
-        )
-        palette = QPalette()
-        # palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "back.png"))))  
-        palette.setBrush(QPalette.Background, QBrush(QPixmap(':/img/back.png')))
-        self.setPalette(palette)
+        self.setObjectName("window")
+        if os.path.exists(self.PATH / "img" / "backimg.jpg"):
+            palette = QPalette()
+            palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "backimg.jpg"))))  
+            self.setPalette(palette)
+        else:
+            self.setStyleSheet(
+            """
+            QWidget#window
+            { 
+                background-color: #d092db;
+            }
+            """)
         # 窗口打开位置，默认在屏幕中间
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
+        
+    def toolBut(self) -> None:
+        # 背景主题按钮
+        self.pushButtonBack = PushButtonTool(self)
+        self.pushButtonBack.setToolTip("更改背景图片")
+        self.pushButtonBack.setFixedSize(QSize(30, 30))
+        self.pushButtonBack.move(470, 0)
+        # self.pushButtonBack.setIcon(QIcon(str(self.PATH / "img" / "back.png")))
+        self.pushButtonBack.setIcon(QIcon(QPixmap(':/img/back.png')))
+        self.pushButtonBack.clicked.connect(self.changeBack)
+        # 更改头像
+        self.pushButtonHead = PushButtonTool(self)
+        self.pushButtonHead.setToolTip("更改头像")
+        self.pushButtonHead.setFixedSize(QSize(30, 30))
+        self.pushButtonHead.move(430, 0)
+        # self.pushButtonBack.setIcon(QIcon(str(self.PATH / "img" / "back.png")))
+        self.pushButtonHead.setIcon(QIcon(QPixmap(':/img/headimg.png')))
+        self.pushButtonHead.clicked.connect(self.changeHead)
+        return 
+        
+    def changeBack(self) -> None:
+        fileSave = self.PATH / "img" 
+        os.makedirs(fileSave, exist_ok=True)
+        fileUrl, _ = QFileDialog.getOpenFileName(self, "选择一个背景文件", filter = "图片(*.jpg)")
+        if fileUrl:
+            image = QImage(fileUrl)
+            image.save(str(fileSave / "backimg.jpg"), "jpg", 100)
+            palette = QPalette()
+            palette.setBrush(QPalette.Background, QBrush(QPixmap(str(self.PATH / "img" / "backimg.jpg"))))  
+            self.setPalette(palette)
+        return
     
+    def changeHead(self) -> None:
+        fileSave = self.PATH / "img" 
+        os.makedirs(fileSave, exist_ok=True)
+        fileUrl, _ = QFileDialog.getOpenFileName(self, "选择一个头像文件", filter = "图片(*.png *.jpg)")
+        if fileUrl:
+            source = QPixmap(fileUrl)
+            size = min(source.width(), source.height())
+            image = QPixmap(size, size)
+            image.fill(Qt.transparent)
+            qp = QPainter(image)
+            qp.setRenderHints(qp.Antialiasing)
+            path = QPainterPath()
+            path.addEllipse(0, 0, size, size)
+            qp.setClipPath(path)
+            sourceRect = QRect(0, 0, size, size)
+            sourceRect.moveCenter(source.rect().center())
+            qp.drawPixmap(image.rect(), source, sourceRect)
+            qp.end()
+            image.save(str(fileSave / "head.png"), "png", 100)
+        return
+
     def sing(self) -> None:
         """登录"""   
         user_id = self.userId.text()
@@ -554,7 +696,7 @@ class Window(FramelessWindow):
         widget = DrawingBubble(msg, self.listWidget.width(), "left")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
         item.setData(Qt.UserRole, widget.getText())
-        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSizeH))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
         # 定位到最后一行
@@ -567,7 +709,7 @@ class Window(FramelessWindow):
         widget = DrawingBubble(msg, self.listWidget.width(), "center")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
         item.setData(Qt.UserRole, widget.getText())
-        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSizeH))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
         # 定位到最后一行
@@ -580,7 +722,7 @@ class Window(FramelessWindow):
         widget = DrawingBubble(msg, self.listWidget.width(), "right")
         item = QListWidgetItem()  # 创建QListWidgetItem对象
         item.setData(Qt.UserRole, widget.getText())
-        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSize))
+        item.setSizeHint(QSize(self.listWidget.width() - 20, widget.h + widget.moveSizeH))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, widget)
         # 定位到最后一行
@@ -607,7 +749,17 @@ class Window(FramelessWindow):
         self.moveFlag = False
         
 if __name__ == '__main__':
+    # enable dpi scale
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
     app = QApplication(sys.argv)
-    win = Window()
-    win.show()
-    sys.exit(app.exec_())
+
+    # fix issue #50
+    app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
+
+    window = Window()
+    window.show()
+    sys.exit(app.exec())
