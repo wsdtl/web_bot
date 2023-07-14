@@ -21,7 +21,10 @@ from PyQt5.QtGui import (
     QFontMetrics, 
     )
 
-import resource_rc
+try:
+    from . import resource_rc
+except ImportError:
+    import resource_rc
 
 class DialogRight(QWidget):
     
