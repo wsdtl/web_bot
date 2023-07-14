@@ -84,9 +84,7 @@ class DialogRight(QWidget):
         painter.setBrush(QColor(255, 255, 255, 200))     
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画阴影
-        borderColor= QColor(0, 0, 0)
-        borderColor.setNamedColor('#d3d3d3')
-        painter.setPen(borderColor)
+        painter.setPen(QColor('#d3d3d3'))
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
@@ -220,9 +218,7 @@ class DialogOver(QWidget):
         painter.setBrush(QColor(255, 255, 255, 200))     
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画阴影
-        borderColor= QColor(0, 0, 0)
-        borderColor.setNamedColor('#d3d3d3')
-        painter.setPen(borderColor)
+        painter.setPen(QColor('#d3d3d3'))
         painter.drawRoundedRect(event.rect(), 16.0, 16.0)
         # 画图标
         painter.drawPixmap(5, 5, 30, 30, QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
