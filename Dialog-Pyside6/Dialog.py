@@ -226,7 +226,7 @@ class DialogOver(QWidget):
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing)
         # 自定义的绘画方法
-        if self.flags in ["success", "warning", "danger"]:
+        if self.flags in ("success", "warning", "danger"):
             self.drawDialog(event, painter, self.flags)
         else:
             self.drawDialog(event, painter, "success")
