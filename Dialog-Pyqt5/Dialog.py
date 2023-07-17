@@ -182,11 +182,11 @@ class DialogOver(QWidget):
     def __del__(self) -> None:
         DialogOver._count[DialogOver._instanceDel.get()] = 0
         
-    def __init__(self, parent: QWidget, text: str ,title: str = "", flags: str ="success" or "warning" or "danger" ,
+    def __init__(self, parent: QWidget, text: str, title: str = "", flags: str ="success" or "warning" or "danger",
                 _showTime: int = 3000, _dieTime: int = 300):
         super().__init__()
         # 窗口设置
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint| Qt.WindowType.SubWindow) 
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowType.SubWindow) 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setAttribute(Qt.WA_TranslucentBackground, True) # 设置窗口背景透明
         # 参数设置
@@ -290,7 +290,7 @@ class DialogOver(QWidget):
             backgroundColor = QColor(254, 240, 240, 200)
             borderColor = QColor(239, 220, 219)
             textColor = QColor(245,108,108)
-        else :
+        else:
             backgroundColor = QColor(240, 249, 235, 200)
             borderColor = QColor(227, 249, 214)
             textColor = QColor(0, 191, 0)
@@ -363,18 +363,20 @@ class Window(QWidget):
     
     def but1(self) -> None:
         self.resize(self.width() + 30, self.height() + 30)
-        DialogOver(self, "我是success", title="我是success的类容", flags= "success")
-        # DialogRight("我是内容", title="我是标题", flags= "danger")
+        DialogOver(self, "我是success的类容", title="我是success", flags= "success")
+        DialogRight("我是success的类容", title="我是success", flags= "success")
         self.activateWindow() # 将活动窗口设置回来
         
     def but2(self) -> None:
         self.resize(self.width() + 30, self.height() + 30)
-        DialogOver(self, "我是warning", title="我是warning的类容", flags= "warning")
+        DialogOver(self, "我是warning的类容", title="我是warning", flags= "warning")
+        DialogRight("我是warning的类容", title="我是warning", flags= "warning")
         self.activateWindow() # 将活动窗口设置回来
         
     def but3(self) -> None:
         self.resize(self.width() - 30, self.height() - 30)
         DialogOver(self, "我是danger,我没有标题", title="", flags= "danger")
+        DialogRight("我是danger,我没有标题", title="", flags= "danger")
         self.activateWindow() # 将活动窗口设置回来
         
 

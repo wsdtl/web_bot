@@ -1,10 +1,11 @@
 import sys
 import queue
-from typing import List
+from typing import Tuple
 from PySide6.QtWidgets import (
     QApplication, 
     QWidget,
     QPushButton,
+    QVBoxLayout
 )
 from PySide6.QtCore import (
     QPoint,
@@ -190,26 +191,30 @@ class DialogOver(QWidget):
     def __del__(self) -> None:
         DialogOver._count[DialogOver._instanceDel.get()] = 0  # 将被删除对象的位置在_count中置为0，标记为空闲位置
         
-    def __init__(self, text: str, title: str = "", flags: str = "success" or "warning" or "danger",
+    def __init__(self, parent: QWidget, text: str, title: str = "", flags: str = "success" or "warning" or "danger",
                  _showTime: int = 3000, _dieTime: int = 500):
         super().__init__()
-
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
-        # self.setAttribute(Qt.WA_DeleteOnClose)  # pyside6 此函数没有用,因此要自己对自己进行强索引
-        self.setAttribute(Qt.WA_TranslucentBackground, True)  # 设置窗口背景透明
+        # 窗口设置
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.WindowType.SubWindow| Qt.WindowTransparentForInput) 
+        self.setAttribute(Qt.WA_TranslucentBackground, True) # 设置窗口背景透明
+        # 参数设置
+        self.parent = parent
         self.title = title
         self.text = text
         self.flags = flags
-        self.resize(500, 40)
-        self.moveSizeH = 6  # 每个框的高度偏移量
-        self.moveSize = 6  # 框的初始高度偏移量
         self._dieTime = _dieTime
+        # 尺寸与偏移量设置
+        self.setMinimumWidth(500)
+        self.resize(self.parent.width() // 2, 40)
+        self.moveSizeH = 6   # 每个窗口的高度偏移量, 窗口与窗口之间的间隙
+        self.moveSize = 4     # 窗口的初始高度偏移量, 第一个窗口与父对象窗口上限的间隙
         self.moveDialog()
+        # 展示时间计时， 结束开始消失
         self.showTime = QTimer(self)  # 定时器，控制显示时间
         self.showTime.setSingleShot(True)  # 只触发一次
         self.showTime.start(_showTime)
         self.showTime.timeout.connect(self.disDialog)  # 显示时间到达后调用disDialog方法
-
+        # 窗口结束时间计时， 结束释放对象
         self.dieTime = QTimer(self)  # 定时器，控制关闭时间
         self.dieTime.setSingleShot(True)  # 只触发一次
         self.dieTime.start(_showTime + _dieTime + 50)
@@ -220,7 +225,6 @@ class DialogOver(QWidget):
         # 绘制事件
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing)
-
         # 自定义的绘画方法
         if self.flags in ["success", "warning", "danger"]:
             self.drawDialog(event, painter, self.flags)
@@ -228,52 +232,83 @@ class DialogOver(QWidget):
             self.drawDialog(event, painter, "success")
 
     def drawDialog(self, event: QPaintEvent, painter: QPainter, flags: str) -> None:
-        # 设置背景笔颜色
-        painter.setPen(QColor(255, 255, 255))
-        # 绘制背景
-        painter.setBrush(QColor(255, 255, 255, 240))
-        painter.drawRoundedRect(event.rect(), 16.0, 16.0)
+        # 设置绘画颜色
+        backgroundColor, borderColor, textColor = self.setColor(flags)
+        titleFont = QFont('Microsoft YaHei', 12, QFont.Bold)  # 标题字体
+        textFont = QFont('Microsoft YaHei', 12)  # 文字字体
+        icoSize = 40 # 图标大小
+        titleWidth = QFontMetrics(titleFont).horizontalAdvance(self.title) + 10 # 图标宽度, 间隙 10px
+        textMaxLen = self.width() - icoSize - titleWidth  # 计算空余空间下文字最大长度
+        text, textWidth = self.prepare(self.text, textMaxLen, textFont) # 整理文字
+        backgroundWidth = icoSize + titleWidth + textWidth # 背景填充的宽度
+        backgroundHight = self.height() # 背景填充的高度
+        backgroundX = (self.width() - backgroundWidth) // 2  # 背景填充的 x 坐标
+        backgroundY = 0 # 背景填充的 y 坐标
+        # 设置背景笔颜色 绘制背景
+        painter.setPen(backgroundColor) # 设置背景填充时的笔颜色
+        painter.setBrush(backgroundColor) # 设置背景填充时的填充颜色
+        painter.drawRoundedRect(backgroundX, backgroundY, backgroundWidth, backgroundHight, 8.0, 8.0) 
+        # 画阴影
+        painter.setPen(borderColor) # 设置阴影笔颜色
+        painter.drawRoundedRect(backgroundX, backgroundY, backgroundWidth, backgroundHight, 8.0, 8.0)
         # 画图标
-        img = QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
-        painter.drawPixmap(5, 5, 30, 30, img)
-        # 设置笔 文字颜色
-        font = QFont('Microsoft YaHei', 12, QFont.Bold)
-        painter.setFont(font)
-        painter.setPen(QColor(0, 0, 0))
-        # 画 title
-        titleSizeMoveH = (self.height() - QFontMetrics(font).height()) // 2  # 计算标题在垂直方向上的位置
-        titleWidth = QFontMetrics(font).horizontalAdvance(self.title)  # 计算标题的宽度
+        painter.drawPixmap(
+            backgroundX + 5,
+            backgroundY + 5,
+            30,
+            30,
+            QPixmap(f':/img/{flags}.png').scaled(30, 30, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        )
+        # 画 title 
+        painter.setFont(titleFont) # 设置画笔字体
+        painter.setPen(textColor) # 设置画笔颜色
+        titleSizeMoveH = (backgroundHight - QFontMetrics(titleFont).height()) // 2 # 计算标题上方间隙距离
         painter.drawText(
-            40,
+            backgroundX + icoSize, 
             titleSizeMoveH,
             titleWidth,
-            QFontMetrics(font).height(),
-            Qt.AlignLeft,
+            QFontMetrics(titleFont).height(),
+            Qt.AlignLeft, 
             self.title
         )
-        # 设置笔 文字颜色
-        font = QFont('Microsoft YaHei', 12)
-        painter.setFont(font)
-        # 画 text
-        textMaxLen = self.width() - 40 - titleWidth  # 计算文本的最大长度
-        text, textWidth = self.prepare(self.text, textMaxLen, font)  # 调用prepare方法整理长文本
+        # 画 text 
+        painter.setFont(textFont)
         painter.drawText(
-            40 + titleWidth + 5,
-            titleSizeMoveH,
-            textWidth,
-            QFontMetrics(font).height(),
-            Qt.AlignLeft,
+            backgroundX + icoSize + titleWidth, 
+            titleSizeMoveH, 
+            textWidth, 
+            QFontMetrics(textFont).height(), 
+            Qt.AlignLeft,  
             text
         )
 
+    def setColor(self, flags: str) -> Tuple[QColor, QColor, QColor]:
+        if flags == "success":
+            backgroundColor = QColor(240, 249, 235, 200)
+            borderColor = QColor(227, 249, 214)
+            textColor = QColor(0, 191, 0)
+        elif flags == "warning":
+            backgroundColor = QColor(253, 246, 236, 200)
+            borderColor = QColor(241, 228, 208)
+            textColor = QColor(241, 170, 62)
+        elif flags == "danger":
+            backgroundColor = QColor(254, 240, 240, 200)
+            borderColor = QColor(239, 220, 219)
+            textColor = QColor(245,108,108)
+        else:
+            backgroundColor = QColor(240, 249, 235, 200)
+            borderColor = QColor(227, 249, 214)
+            textColor = QColor(0, 191, 0)
+            
+        return backgroundColor, borderColor, textColor
+    
     def moveDialog(self) -> None:
-        # desktop = QApplication.desktop().availableGeometry()
-        desktop = QApplication.instance().screens()[0].size()
-
-        w, h = desktop.width() // 2, self.moveSize + (self.height() + self.moveSizeH) * (DialogOver._instanceWidget.get())
+        x = self.parent.x() + (self.parent.width() // 2) - (self.width() // 2)
+        y = self.parent.y() + self.moveSize + (DialogOver._instanceWidget.get() * (self.height() + self.moveSizeH))
+        
         animation = QPropertyAnimation(self, b"pos", self)
-        animation.setStartValue(QPoint(w, h))
-        animation.setEndValue(QPoint((desktop.width() - self.width()) // 2, h))
+        animation.setStartValue(QPoint(x + 100, y))
+        animation.setEndValue(QPoint(x, y))
         animation.setDuration(1000)
         animation.setEasingCurve(QEasingCurve.OutCubic)
         animation.start()
@@ -287,46 +322,70 @@ class DialogOver(QWidget):
         animation.start()
         
     def closeDialog(self) -> None:
-        DialogOver._instanceQueue.get()  # 取出强索引, 主动激活python回收释放实例对象，调用__del__函数
+        DialogOver._instanceQueue.get()  # 取出强引用, 主动激活python回收释放实例对象，调用__del__函数
         self.close()
     
-    def prepare(self, text: str, maxLen: int, font: QFont) -> str:
+    def prepare(self, text: str, maxLen: int ,font: QFont) -> str:
         # 整理长文本
-        text = text.replace("\n", "")
-        maxLen -= 30  # 减去图标的宽度
+        text = text.replace("\n","") 
         font = QFontMetrics(font)
+        maxLen -= font.horizontalAdvance("pyqt") # 字体的冗余长度
         textLen = 0
         textNew = ""
         for x in text:
             textNew += x
-            textLen += font.horizontalAdvance(x)  # 计算文本的宽度
+            textLen += font.horizontalAdvance(x)
             if textLen >= maxLen:
                 textNew += "..."
-                textLen += font.horizontalAdvance("...")  # 如果文本宽度超过最大长度，则加上省略号并跳出循环
+                textLen += font.horizontalAdvance("...")
                 break
-        return textNew, textLen
+            
+        return textNew, textLen + 10
     
-
 
 class Window(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        
-        self.dialogList: List[DialogOver] = []
         self.setWindowTitle("Window")
-        self.resize(450, 450)
+        self.resize(500, 500)
+        
+        layout = QVBoxLayout(self)
 
-        self.but = QPushButton(self)
-        self.but.setText("生成一个消息框")
-        self.but.resize(400, 400)
-        self.but.clicked.connect(self.dialog)
-
-    def dialog(self) -> None:
-        dialog1 = DialogOver("我是内容", title="我是标题", flags="success")
-        dialog2 = DialogRight("我是内容", title="我是标题", flags="success")
-        self.activateWindow()
-
+        self.button1 = QPushButton("success", self)
+        self.button2 = QPushButton("warning", self)
+        self.button3 = QPushButton("danger", self)
+        layout.addStretch(1)
+        layout.addWidget(self.button1)
+        layout.addWidget(self.button2)
+        layout.addWidget(self.button3)
+        
+        self.button1.clicked.connect(self.but1)
+        self.button2.clicked.connect(self.but2)
+        self.button3.clicked.connect(self.but3)
+        
+        self.button1.setShortcut(Qt.Key_Q ) # 绑定Q
+        self.button2.setShortcut(Qt.Key_W ) # 绑定W
+        self.button3.setShortcut(Qt.Key_E ) # 绑定E
+    
+    def but1(self) -> None:
+        self.resize(self.width() + 30, self.height() + 30)
+        DialogOver(self, "我是success的类容", title="我是success", flags= "success")
+        DialogRight("我是success的类容", title="我是success", flags= "success")
+        self.activateWindow() # 将活动窗口设置回来
+        
+    def but2(self) -> None:
+        self.resize(self.width() + 30, self.height() + 30)
+        DialogOver(self, "我是warning的类容", title="我是warning", flags= "warning")
+        DialogRight("我是warning的类容", title="我是warning", flags= "warning")
+        self.activateWindow() # 将活动窗口设置回来
+        
+    def but3(self) -> None:
+        self.resize(self.width() - 30, self.height() - 30)
+        DialogOver(self, "我是danger,我没有标题", title="", flags= "danger")
+        DialogRight("我是danger,我没有标题", title="", flags= "danger")
+        self.activateWindow() # 将活动窗口设置回来
+        
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
