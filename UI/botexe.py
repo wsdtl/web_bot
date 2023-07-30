@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QMenu,
     QFileDialog
-    )
+)
 from PyQt5.QtGui import (
     QIcon, 
     QPalette, 
@@ -33,8 +33,7 @@ from PyQt5.QtGui import (
     QMouseEvent,
     QImage,
     QPainterPath
-  
-    )
+)
 from PyQt5.QtCore import (
     QThread,
     pyqtSignal, 
@@ -43,11 +42,11 @@ from PyQt5.QtCore import (
     Qt, 
     QPointF,
     QRect
-    )
+)
 from qframelesswindow import (
     FramelessWindow,
     StandardTitleBar
-    )
+)
 
 import imge
 
