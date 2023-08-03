@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Callable
 from PySide6.QtCore import(
     QSize,
     Qt
@@ -9,9 +9,6 @@ from PySide6.QtGui import(
     QPixmap,
     QFont,
     QFontMetrics,
-    QMouseEvent,
-    QDropEvent,
-    QDragLeaveEvent,
     QColor
 )
 from PySide6.QtWidgets import (
@@ -48,7 +45,7 @@ class MenuLeftSideFirst(PushButton):
         self, 
         text: str, 
         icon: QPixmap,
-        font_name: Optional[str] = 'DengXian', 
+        font_name: Optional[str] = 'SimHei', 
         font_size: Optional[int] = 14,
         theme_color: Optional[QColor] = QColor(255, 255, 255, 255)
     ) -> None:
@@ -59,7 +56,7 @@ class MenuLeftSideFirst(PushButton):
         self._icon_press = change_theme_color(icon, theme_color).scaled(QSize(15, 15), Qt.KeepAspectRatio, Qt.SmoothTransformation) 
         self._move_letf = 14
         self._move_space = 10
-        self._font = QFont(font_name, font_size)
+        self._font = QFont(font_name, font_size, QFont.Light)
         self._fontMetrics = QFontMetrics(self._font)
         self.setFixedSize(QSize(self._w - 10, self._h - 10))
         self.setCheckable(True)  # 设置可以被选中
@@ -127,7 +124,7 @@ class MenuLeftSideSecondary(PushButton):
         self, 
         text: str, 
         sign_func: "MainWindow.display",
-        font_name: Optional[str] = 'DengXian', 
+        font_name: Optional[str] = 'SimHei', 
         font_size: Optional[int] = 12
     ) -> None:
         super().__init__(self)
@@ -135,7 +132,7 @@ class MenuLeftSideSecondary(PushButton):
         self._sign_func = sign_func
         self._move_letf = 20
         self._move_space = 5
-        self._font = QFont(font_name, font_size)
+        self._font = QFont(font_name, font_size, QFont.Light)
         self._fontMetrics = QFontMetrics(self._font)
         self._icon = QPixmap(":/image/arrow.png").scaled(QSize(12, 12), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.setFixedSize(QSize(self._w - 10, self._h - 10))
@@ -270,40 +267,27 @@ class MenuLeftSideSecondaryList:
                 item_old.setHidden(not item_old.isHidden())
                 
                 item.setHidden(not item.isHidden())
-                cls._item_hidden_num = cls._item_hidden.index(item)         
+                cls._item_hidden_num = cls._item_hidden.index(item)               
+                
         
-class MenuLeftList(QListWidget):
+class MenuLeftList(QListWidget):  
     
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__()  
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff) 
         self.setObjectName("MenuLeftList")
         self.setStyleSheet(
             """QListWidget#MenuLeftList
             {
-                background: #f0f0f0;
+                background-color: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #f0f0f0, stop:0.9 #f0f0f0, stop:1 #f6f6f6);
                 border: none;
             }
         """)
-        
-    def dropEvent(event: QDropEvent) -> None:
+
+    def paintEvent(self, event: QPaintEvent) -> None:   
         event.ignore()
 
-    def dragLeaveEvent(self, event: QDragLeaveEvent) -> None:
-        event.ignore()
-        
-    def dragMoveEvent(self, event: QDragLeaveEvent) -> None:
-        event.ignore()
-        
-    def mouseMoveEvent(self, event :QMouseEvent) -> None:
-        event.ignore()
-    
-    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        event.ignore()
-
-    def paintEvent(self, event: QPaintEvent) -> None:
-        event.ignore()
 
 class StackedWidget(QStackedWidget):
     
@@ -315,16 +299,15 @@ class StackedWidget(QStackedWidget):
         super().setCurrentIndex(num)
         StackedWidget._wins_tuple["wecome"] = widget_zero
         
-    def addWidget(self, widget: QWidget, name: str) -> None:
-        if isinstance(widget, QWidget):
-            result = self.indexOf(name)
-            if result == 0:
-                StackedWidget._wins_tuple[name] = widget
-                num =  super().addWidget(widget)
-                super().setCurrentIndex(num)
-            else:
-                widget.close()
-                super().setCurrentIndex(result)
+    def addWidget(self, widget: Callable, name: str) -> None:
+        result = self.indexOf(name)
+        if result == 0:
+            widget_new = widget()
+            StackedWidget._wins_tuple[name] = widget_new
+            num =  super().addWidget(widget_new)
+            super().setCurrentIndex(num)
+        else:
+            super().setCurrentIndex(result)
         
     def indexOf(self, name: str) -> int:
         if name == "wecome":

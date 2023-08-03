@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QLabel
 from PySide6.QtGui import  QPixmap
 from PySide6.QtCore import QSize, Qt
 
+from . import rc
 
 class WecomeWidget(QLabel):
     
@@ -15,7 +16,7 @@ class WecomeWidget(QLabel):
         
     def init_ui(self) -> None:
         self.setAlignment(Qt.AlignCenter)
-        pix = QPixmap(":/img/wecome.png").scaled(self._size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        pix = QPixmap(":/image/wecome.png").scaled(self._size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.setPixmap(pix)
 
         
