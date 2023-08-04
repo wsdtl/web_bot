@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QApplication
 )
 
+from .dialog import DialogOver
 from .title import MyTip
 from .wecome import WecomeWidget
 from .menu_index import(
@@ -76,6 +77,7 @@ class MainWindow(QMainWindow):
     
     def display(self, name: str) -> None:
         self.add_message(name)
+        self.add_popup(name)
         if name in MainWindow._widget:
             widget = MainWindow._widget[name]
             self.right_widget.addWidget(widget, name)
@@ -91,4 +93,12 @@ class MainWindow(QMainWindow):
 
     def add_message(self, text: str) -> None:
         self.stat.showMessage(text)
+    
+    def add_popup(
+        self, 
+        text: str, 
+        title : Optional[str] = "",
+        flag: Optional[str] = "success"
+    ) -> None:
+        DialogOver(self, text, title, flag)
             
