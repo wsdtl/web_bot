@@ -3,8 +3,6 @@ from PySide6.QtWidgets import QLabel, QApplication
 from PySide6.QtGui import QPixmap
 from basewidget import MainWindow
 # 移动到主目录下运行
-import imge
-
 
 class Label1(QLabel):
     
